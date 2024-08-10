@@ -16,7 +16,7 @@ Then you can open them all at once by launching the single Stapler document.
 
 ## Download
 
-[https://github.com/gingerbeardman/stapler/releases](https://github.com/gingerbeardman/stapler/releases)
+[https://github.com/gingerbeardman/stapler/releases/latest](https://github.com/gingerbeardman/stapler/releases/latest)
 
 ----
 
