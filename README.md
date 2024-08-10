@@ -1,22 +1,27 @@
 # Stapler
 
-A remake of classic Macintosh app called [Stapler](https://macintoshgarden.org/apps/stapler-11) (Chris Patterson, Patterson Software Works, 1992).
+A remake of classic Macintosh app [Stapler](https://macintoshgarden.org/apps/stapler-11) (Chris Patterson, Patterson Software Works, 1992).
 
 You might remember a similar app for Mac OS X called [LaunchList](http://hasseg.org/launchList/) (Ali Rantakari, hasseg.org, 2009).
 
 ## What is it?
 
-It's a document of aliases which can be managed, inspected and launched.
+The idea is you set up a *Stapler Document* per project containing related apps, files, folders, etc.
 
-The idea is you set up a document per project containing related apps, files, folders, etc.
+Then you can open them all at once by launching the single *Stapler Document*.
 
-Then you can open them all at once by launching the single Stapler document.
+Each *Stapler Document* contains lists of aliases which can be managed, inspected and launched through `Stapler.app`.
 
 <img width="442" alt="screenshot" src="https://github.com/user-attachments/assets/9b5482f9-48f0-4609-bf66-8b54ae148132">
 
+## Use cases
+- Work: open Nova editor, run current game, pixel art editor, bitmap font app, Taskpaper todo list
+- Play: Music app, Hacker News app, Twitter app
+- Movie: run Caffeine to keep your computer on, shortcut to Sleep Displays
+
 ## Download
 
-[https://github.com/gingerbeardman/stapler/releases](https://github.com/gingerbeardman/stapler/releases)
+[https://github.com/gingerbeardman/stapler/releases/latest](https://github.com/gingerbeardman/stapler/releases/latest)
 
 ----
 
@@ -26,7 +31,7 @@ Then you can open them all at once by launching the single Stapler document.
 
 - The app is digitally signed by me and my Apple developer account
 - The app is *not* Notarised and I currently have no plans to do so
-- You may need to do the right-click-choose-open Gatekeeper dance a couple of times to open the app
+- You may need to do the right-click-choose-open Gatekeeper dance a couple of times to open it
 
 ### Editing a list
 
@@ -47,6 +52,13 @@ All standard macOS Document-Based App conventions are supported through the File
 3. `Stapler.app` will close (if it was not already open)
 
 *Tip*: hold the <kbd>Cmd</kbd> key as the *Stapler Document* is being launching to open it in edit mode.
+
+### Launching specific items
+
+1. Open `Stapler.app`
+2. Open a *Stapler Document*
+3. Select the items you want to launch
+4. Select `Items` > `Launch` (or press <kbd>Return</kbd>)
 
 ### Working with a list
 
