@@ -4,6 +4,10 @@ My take on classic Macintosh app [Stapler](https://macintoshgarden.org/apps/stap
 
 With a little bit of the early Mac OS X app [LaunchList](http://hasseg.org/launchList/) (Ali Rantakari, hasseg.org, 2009).
 
+## Download
+
+[https://github.com/gingerbeardman/stapler/releases/latest](https://github.com/gingerbeardman/stapler/releases/latest)
+
 ## What is it?
 
 The idea is you set up a *Stapler Document* per project containing related apps, files, folders, etc.
@@ -18,10 +22,6 @@ Each document contains a list of aliases that can be managed, inspected, launche
 - Work: open Nova editor, run current game, pixel art editor, bitmap font app, Taskpaper todo list
 - Play: Music app, Hacker News app, Twitter app
 - Movie: run Caffeine to keep your computer on, shortcut to Sleep Displays
-
-## Download
-
-[https://github.com/gingerbeardman/stapler/releases/latest](https://github.com/gingerbeardman/stapler/releases/latest)
 
 ----
 
