@@ -390,11 +390,9 @@ struct StaplerApp: App {
 	func handleDocumentOpening(_ url: URL) {
 		let currentEvent = NSApplication.shared.currentEvent
 		let eventTypeValue = currentEvent?.subtype.rawValue
-		let isOpenedFromFinder = currentEvent != nil && currentEvent?.type == .appKitDefined &&
-			(eventTypeValue == 1 || eventTypeValue == 10)
+		let isOpenedFromFinder = currentEvent != nil && currentEvent?.type == .appKitDefined && eventTypeValue == 1
 		
 		if isOpenedFromFinder {
-//			logger.info("Document opened from Finder")
 			
 			let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
 			
@@ -509,7 +507,6 @@ struct StaplerApp: App {
 	}
 }
 
-// Keep these extensions at the bottom of your file
 extension Notification.Name {
 	static let addAlias = Notification.Name("addAlias")
 	static let removeAlias = Notification.Name("removeAlias")
@@ -518,7 +515,6 @@ extension Notification.Name {
 	static let quickLookAlias = Notification.Name("quickLookAlias")
 }
 
-// Extend the Scene protocol to disable text editing commands
 extension Scene {
 	func disableTextEditingCommands() -> some Scene {
 		self.commands {
