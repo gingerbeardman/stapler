@@ -26,7 +26,7 @@ Then you can open them all at once by launching the single Stapler document.
 
 - The app is digitally signed by me and my Apple developer account
 - The app is *not* Notarised and I currently have no plans to do so
-- You may need to do the right-click-choose-open Gatekeeper dance a couple of times to open the app
+- You may need to do the right-click-choose-open Gatekeeper dance a couple of times to open it
 
 ### Editing a list
 
