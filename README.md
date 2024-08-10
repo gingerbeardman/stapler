@@ -8,9 +8,9 @@ With a little bit of the early Mac OS X app [LaunchList](http://hasseg.org/launc
 
 The idea is you set up a *Stapler Document* per project containing related apps, files, folders, etc.
 
-Then you can open them all at once by launching the single *Stapler Document*.
+Then you can open them all at once by launching the single document.
 
-Each *Stapler Document* contains lists of aliases which can be managed, inspected and launched through `Stapler.app`.
+Each *Stapler Document* contains a list of aliases that can be managed, inspected, launched using `Stapler.app`.
 
 <img width="442" alt="screenshot" src="https://github.com/user-attachments/assets/9b5482f9-48f0-4609-bf66-8b54ae148132">
 
