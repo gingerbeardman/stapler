@@ -17,7 +17,7 @@ Each *Stapler Document* contains lists of aliases which can be managed, inspecte
 ## Use cases
 - Work: open Nova editor, run current game, pixel art editor, bitmap font app, Taskpaper todo list
 - Play: Music app, Hacker News app, Twitter app
-- Movie: open Plex, run Caffeine to keep your computer on, shortcut to Sleep Displays
+- Movie: run Caffeine to keep your computer on, shortcut to Sleep Displays
 
 ## Download
 
