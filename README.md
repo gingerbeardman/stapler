@@ -14,4 +14,4 @@ Then you can open them all at once by double clicking the Stapler document.
 
 ## Screenshot
 
-<img width="442" alt="Screen shot 2024-08-10 at 00 53 31" src="https://github.com/user-attachments/assets/32f3a1ec-b8c6-496f-b1b4-416bccce0bed">
+<img width="442" alt="screenshot" src="https://github.com/user-attachments/assets/9b5482f9-48f0-4609-bf66-8b54ae148132">
