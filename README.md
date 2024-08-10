@@ -6,7 +6,7 @@ You might remember a similar app for Mac OS X called [LaunchList](http://hasseg.
 
 ## What is it?
 
-`Stapler.app` is a an app for managing Stapler Documents.
+`Stapler.app` is an app for creating managing its own type of documents.
 
 A *Stapler Document* contains multiple aliases which can be managed, inspected and launched.
 
