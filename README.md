@@ -1,6 +1,6 @@
 # Stapler
 
-A remake of classic Macintosh app called [Stapler](https://macintoshgarden.org/apps/stapler-11) (Chris Patterson, Patterson Software Works, 1992).
+A remake of classic Macintosh app [Stapler](https://macintoshgarden.org/apps/stapler-11) (Chris Patterson, Patterson Software Works, 1992).
 
 You might remember a similar app for Mac OS X called [LaunchList](http://hasseg.org/launchList/) (Ali Rantakari, hasseg.org, 2009).
 
