@@ -482,7 +482,7 @@ struct StaplerApp: App {
 			// Add the About menu item with linked credits
 			CommandGroup(replacing: .appInfo) {
 				Button("About Stapler") {
-					let creditString = "Inspired by: Stapler (1992) & LaunchList (2009)\n\n© 2024 Matt Sephton gingerbeardman.com"
+					let creditString = "Inspired by: Stapler (1992) & LaunchList (2009)\n\ngithub.com/gingerbeardman/stapler"
 					let attributedString = NSMutableAttributedString(string: creditString)
 					
 					// Apply the base attributes to the entire string
@@ -493,9 +493,9 @@ struct StaplerApp: App {
 					attributedString.addAttributes(baseAttributes, range: NSRange(location: 0, length: creditString.count))
 					
 					// Find the range of the text and apply the link attribute
-					if let range = creditString.range(of: "gingerbeardman.com") {
+					if let range = creditString.range(of: "github.com/gingerbeardman/stapler") {
 						let nsRange = NSRange(range, in: creditString)
-						attributedString.addAttribute(.link, value: "https://www.gingerbeardman.com", range: nsRange)
+						attributedString.addAttribute(.link, value: "https://github.com/gingerbeardman/stapler", range: nsRange)
 					}
 					
 					NSApp.orderFrontStandardAboutPanel(options: [
