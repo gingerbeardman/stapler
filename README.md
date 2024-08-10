@@ -18,11 +18,17 @@ Then you can open them all at once by launching the single Stapler document.
 
 [https://github.com/gingerbeardman/stapler/releases](https://github.com/gingerbeardman/stapler/releases)
 
-*Note*: the app is not Notarised, but it signed by me. You may need to do the right-click-choose-open dance a couple of times to open the app.
-
 ----
 
-## Editing a list
+## Usage
+
+### Opening the app
+
+- The app is digitally signed by me and my Apple developer account
+- The app is *not* Notarised and I currently have no plans to do so
+- You may need to do the right-click-choose-open Gatekeeper dance a couple of times to open the app
+
+### Editing a list
 
 1. Open `Stapler.app`
 2. Create a New Document
@@ -34,9 +40,7 @@ Then you can open them all at once by launching the single Stapler document.
 
 All standard macOS Document-Based App conventions are supported through the File menu. And things like Undo just works!
 
-----
-
-## Launching a list
+### Launching a list
 
 1. Open your *Stapler Document*
 2. All items in the list will be launched automatically
@@ -44,9 +48,7 @@ All standard macOS Document-Based App conventions are supported through the File
 
 *Tip*: hold the <kbd>Cmd</kbd> key as the *Stapler Document* is being launching to open it in edit mode.
 
-----
-
-## Working with a list
+### Working with a list
 
 1. Open `Stapler.app`
 2. Open a *Stapler Document*
@@ -54,9 +56,7 @@ All standard macOS Document-Based App conventions are supported through the File
    - use `File` > `Open Recent`
 3. Use the `Items` menu
 
-----
-
-## Keyboard controls
+### Keyboard controls
 
 |Key |Function|
 |--|----|
@@ -66,9 +66,7 @@ All standard macOS Document-Based App conventions are supported through the File
 |<kbd>Cmd</kbd> + <kbd>R</kbd>|Reveal in Finder|
 |<kbd>Return</kbd>|Launch|
 
-----
-
-## Permissions
+### Permissions
 
 - All files you select or drop are recorded only as system bookmarks
 - The only files that are written are through the file save selector
