@@ -6,7 +6,7 @@ You might remember a similar app for Mac OS X called [LaunchList](http://hasseg.
 
 ## What is it?
 
-The idea is you set up a document per project containing related apps, files, folders, etc.
+The idea is you set up a *Stapler Document* per project containing related apps, files, folders, etc.
 
 Then you can open them all at once by launching the single *Stapler Document*.
 
