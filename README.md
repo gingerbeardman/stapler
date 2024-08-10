@@ -53,6 +53,13 @@ All standard macOS Document-Based App conventions are supported through the File
 
 *Tip*: hold the <kbd>Cmd</kbd> key as the *Stapler Document* is being launching to open it in edit mode.
 
+### Launching specific items
+
+1. Open `Stapler.app`
+2. Open a *Stapler Document*
+3. Select the items you want to launch
+4. Select `Items` > `Launch` (or press <kbd>Return</kbd>)
+
 ### Working with a list
 
 1. Open `Stapler.app`
