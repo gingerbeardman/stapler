@@ -55,7 +55,7 @@ All standard macOS Document-Based App conventions are supported through the File
 2. All items in the list will be launched automatically
 3. `Stapler.app` will close (if it was not already open)
 
-*Tip*: hold the <kbd>Cmd</kbd> key as the *Stapler Document* is being launching to open it in edit mode.
+*Tip*: hold the <kbd>Cmd</kbd> key whilst launching a *Stapler Document* to open it in edit mode.
 
 ### Launching specific items
 
@@ -71,6 +71,8 @@ All standard macOS Document-Based App conventions are supported through the File
    - use `File` > `Open…`
    - use `File` > `Open Recent`
 3. Use the `Items` menu
+
+*Tip*: hold the <kbd>Cmd</kbd> key whilst launching a *Stapler Document* to open it in edit mode.
 
 ### Keyboard controls
 
@@ -89,3 +91,12 @@ All standard macOS Document-Based App conventions are supported through the File
 - Read-only permission may be prompted for some folders
 - Network permission is required to Quick Look .webloc files
 
+----
+
+## Get involved
+
+- Bug reports and PRs are very welcome!
+
+## Licence
+
+[MIT](/LICENSE)
