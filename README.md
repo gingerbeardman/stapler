@@ -72,6 +72,8 @@ All standard macOS Document-Based App conventions are supported through the File
    - use `File` > `Open Recent`
 3. Use the `Items` menu
 
+*Tip*: hold the <kbd>Cmd</kbd> key whilst launching a *Stapler Document* to open it in edit mode.
+
 ### Keyboard controls
 
 |Key |Function|
