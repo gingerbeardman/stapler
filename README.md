@@ -55,7 +55,7 @@ All standard macOS Document-Based App conventions are supported through the File
 2. All items in the list will be launched automatically
 3. `Stapler.app` will close (if it was not already open)
 
-*Tip*: hold the <kbd>Cmd</kbd> key as the *Stapler Document* is being launching to open it in edit mode.
+*Tip*: hold the <kbd>Cmd</kbd> key whilst launching a *Stapler Document* to open it in edit mode.
 
 ### Launching specific items
 
