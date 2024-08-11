@@ -244,6 +244,7 @@ struct ContentView: View {
 		.frame(minWidth: 300, minHeight: 200)
 		.focused($isViewFocused)
 		.onDrop(of: [.fileURL], isTargeted: nil) { providers in
+			let wasEmpty = viewModel.document.aliases.isEmpty
 			for provider in providers {
 				_ = provider.loadObject(ofClass: URL.self) { url, error in
 					if let error = error {
@@ -253,6 +254,11 @@ struct ContentView: View {
 							do {
 								let newAlias = try AliasItem(url: url)
 								viewModel.addAlias(newAlias)
+								if wasEmpty {
+									updateDocument()
+								} else {
+									document.aliases = viewModel.document.aliases
+								}
 							} catch {
 								viewModel.handleError(error)
 							}
@@ -291,6 +297,7 @@ struct ContentView: View {
 			appStateManager.hasActiveDocument = true
 		}
 		.onDisappear {
+			updateDocument()
 			removeNotificationObservers()
 			appStateManager.hasActiveDocument = false
 		}
@@ -320,6 +327,7 @@ struct ContentView: View {
 		}
 		NotificationCenter.default.addObserver(forName: .removeAlias, object: nil, queue: .main) { _ in
 			removeSelectedAliases()
+			updateDocument()
 		}
 		NotificationCenter.default.addObserver(forName: .getInfo, object: nil, queue: .main) { _ in
 			showFinderInfo()
@@ -371,7 +379,6 @@ struct ContentView: View {
 		} catch {
 			viewModel.handleError(error)
 		}
-		document.aliases = viewModel.document.aliases
 	}
 }
 
@@ -389,9 +396,7 @@ struct StaplerApp: App {
 
 	func handleDocumentOpening(_ url: URL) {
 		let currentEvent = NSApplication.shared.currentEvent
-		let eventTypeValue = currentEvent?.subtype.rawValue
-		let isOpenedFromFinder = currentEvent != nil && currentEvent?.type == .appKitDefined && eventTypeValue == 1
-		// NSEvent.EventSubtype.applicationActivated == 1
+		let isOpenedFromFinder = currentEvent != nil && currentEvent?.type == .appKitDefined && currentEvent?.subtype.rawValue == NSEvent.EventSubtype.applicationActivated.rawValue
 		
 		if isOpenedFromFinder {
 			
