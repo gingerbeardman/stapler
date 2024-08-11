@@ -4,7 +4,39 @@ import Quartz
 import os
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-//	nothing needed! FFS
+	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+		let unsavedDocuments = NSDocumentController.shared.documents.filter { $0.isDocumentEdited }
+		
+		if unsavedDocuments.isEmpty {
+			return .terminateNow
+		}
+		
+		for document in unsavedDocuments {
+			let panel = NSSavePanel()
+			panel.nameFieldStringValue = document.fileURL?.lastPathComponent ?? "Untitled.stapled"
+			
+			let response = panel.runModal()
+			
+			if response == .OK {
+				if let url = panel.url {
+					do {
+						try document.write(to: url, ofType: UTType.staplerDocument.identifier)
+					} catch {
+						let alert = NSAlert()
+						alert.messageText = "Error Saving Document"
+						alert.informativeText = "Failed to save the document: \(error.localizedDescription)"
+						alert.addButton(withTitle: "OK")
+						alert.runModal()
+						return .terminateCancel
+					}
+				}
+			} else {
+				return .terminateCancel
+			}
+		}
+		
+		return .terminateNow
+	}
 }
 
 class AppStateManager: ObservableObject {
@@ -99,6 +131,7 @@ struct StaplerDocumentData: Codable {
 class StaplerViewModel: ObservableObject {
 	@Published var document: StaplerDocument
 	@Published var errorMessage: String?
+	@Published var hasUnsavedChanges: Bool = false
 
 	init(document: StaplerDocument) {
 		self.document = document
@@ -107,12 +140,14 @@ class StaplerViewModel: ObservableObject {
 	func addAlias(_ alias: AliasItem) {
 		document.aliases.append(alias)
 		sortAliases()
+		hasUnsavedChanges = true
 		objectWillChange.send()
 	}
 
 	func removeAliases(at offsets: IndexSet) {
 		document.aliases.remove(atOffsets: offsets)
 		sortAliases()
+		hasUnsavedChanges = true
 		objectWillChange.send()
 	}
 
@@ -152,6 +187,7 @@ class StaplerViewModel: ObservableObject {
 	
 	func updateFromDocument(_ newDocument: StaplerDocument) {
 		self.document = newDocument
+		hasUnsavedChanges = false
 		objectWillChange.send()
 	}
 	
@@ -373,6 +409,8 @@ struct ContentView: View {
 			let data = try encoder.encode(viewModel.document.aliases)
 			if String(data: data, encoding: .utf8) != nil {
 				document.aliases = viewModel.document.aliases
+				viewModel.hasUnsavedChanges = false
+				viewModel.markDocumentAsEdited()
 			} else {
 				throw NSError(domain: "StaplerApp", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode document data"])
 			}
@@ -525,6 +563,14 @@ extension Scene {
 	func disableTextEditingCommands() -> some Scene {
 		self.commands {
 			TextEditingCommands()
+		}
+	}
+}
+
+extension StaplerViewModel {
+	func markDocumentAsEdited() {
+		if let document = NSDocumentController.shared.document(for: document.fileURL ?? URL(fileURLWithPath: "/")) {
+			document.updateChangeCount(.changeDone)
 		}
 	}
 }
