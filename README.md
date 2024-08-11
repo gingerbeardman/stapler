@@ -19,9 +19,9 @@ Each document contains a list of aliases that can be managed, inspected, launche
 <img width="442" alt="screenshot" src="https://github.com/user-attachments/assets/9b5482f9-48f0-4609-bf66-8b54ae148132">
 
 ## Use cases
-- Work: open Nova editor, run current game, pixel art editor, bitmap font app, Taskpaper todo list
-- Play: Music app, Hacker News app, Twitter app
-- Movie: run Caffeine to keep your computer on, shortcut to Sleep Displays
+- Work: text editor, run current game, pixel art editor, bitmap font app, todo list
+- Play: Music app, Hacker News app, Twitter app, script to position windows
+- Movie: run Caffeine to keep your computer on, shortcut to put displays to sleep
 
 ----
 
