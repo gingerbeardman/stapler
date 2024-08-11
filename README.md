@@ -91,3 +91,14 @@ All standard macOS Document-Based App conventions are supported through the File
 - Read-only permission may be prompted for some folders
 - Network permission is required to Quick Look .webloc files
 
+----
+
+## Get involved
+
+- Bug reports and PRs are very welcome!
+
+----
+
+## Licence
+
+[MIT](/LICENSE)
