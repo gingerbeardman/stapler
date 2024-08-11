@@ -86,11 +86,11 @@ All standard macOS Document-Based App conventions are supported through the File
 
 ### Permissions
 
-- All files you select or drop are recorded only as system bookmarks
-- The only files that are written are through the file save selector
-- Read-only permission may be prompted for some folders
+- All files you select or drop are recorded only as macOS bookmarks
+- The only files that are written to are Stapler Documents
 - Network permission is required to Quick Look .webloc files
-- You can grant additional disk access permissions at:
+- File access permission may be prompted for some folders
+- You can grant additional file access permissions at:
     - `System Settings > Privacy & Security > Files and Folders` for specific folders
     - `System Settings > Privacy & Security > Full Disk Access` for full disk
 
