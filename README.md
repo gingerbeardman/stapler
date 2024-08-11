@@ -97,8 +97,6 @@ All standard macOS Document-Based App conventions are supported through the File
 
 - Bug reports and PRs are very welcome!
 
-----
-
 ## Licence
 
 [MIT](/LICENSE)
