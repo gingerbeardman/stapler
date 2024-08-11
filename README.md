@@ -91,6 +91,14 @@ All standard macOS Document-Based App conventions are supported through the File
 - Read-only permission may be prompted for some folders
 - Network permission is required to Quick Look .webloc files
 
+---
+
+## Bonus tip
+
+System Preferences > Desktop & Dock > Windows > Close windows when quitting an application = OFF
+
+Then leave the windows of an app open as you quit it. When you next launch the app its windows will restore to their previous size and position. If you close the windows first, then the app will restore to having no windows open.
+
 ----
 
 ## Get involved
