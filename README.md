@@ -90,7 +90,9 @@ All standard macOS Document-Based App conventions are supported through the File
 - The only files that are written are through the file save selector
 - Read-only permission may be prompted for some folders
 - Network permission is required to Quick Look .webloc files
-- You can grant additional disk access permissions: System Settings > Privacy & Security > Files & Folders or Full Disk Access
+- You can grant additional disk access permissions at:
+    - `System Settings > Privacy & Security > Files and Folders` for specific folders
+    - `System Settings > Privacy & Security > Full Disk Access` for full disk
 
 ---
 
