@@ -4,7 +4,7 @@ My take on classic Macintosh app [Stapler](https://macintoshgarden.org/apps/stap
 
 With a little bit of the early Mac OS X app [LaunchList](http://hasseg.org/launchList/) (Ali Rantakari, hasseg.org, 2009).
 
-More info: [https://blog.gingerbeardman.com/2021/04/17/turning-an-ipad-pro-into-the-ultimate-classic-macintosh/](https://blog.gingerbeardman.com/2021/04/17/turning-an-ipad-pro-into-the-ultimate-classic-macintosh/)
+More info: [https://blog.gingerbeardman.com/2024/08/10/stapler-i-remade-a-32-year-old-classic-macintosh-app/](https://blog.gingerbeardman.com/2024/08/10/stapler-i-remade-a-32-year-old-classic-macintosh-app/)
 
 ## Download
 
