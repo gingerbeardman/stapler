@@ -391,6 +391,7 @@ struct StaplerApp: App {
 		let currentEvent = NSApplication.shared.currentEvent
 		let eventTypeValue = currentEvent?.subtype.rawValue
 		let isOpenedFromFinder = currentEvent != nil && currentEvent?.type == .appKitDefined && eventTypeValue == 1
+		// NSEvent.EventSubtype.applicationActivated == 1
 		
 		if isOpenedFromFinder {
 			
@@ -523,7 +524,7 @@ extension Scene {
 	}
 }
 
-#Preview {
-	ContentView(document: .constant(StaplerDocument()))
-		.environmentObject(AppStateManager())
-}
+//#Preview {
+//	ContentView(document: .constant(StaplerDocument()))
+//		.environmentObject(AppStateManager())
+//}
