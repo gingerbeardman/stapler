@@ -1,6 +1,6 @@
 # Stapler
 
-My take on classic Macintosh app [Stapler](https://macintoshgarden.org/apps/stapler-11) (Chris Patterson, Patterson Software Works, 1992).
+My take on the classic Macintosh app [Stapler](https://macintoshgarden.org/apps/stapler-11) (Chris Patterson, Patterson Software Works, 1992).
 
 With a little bit of the early Mac OS X app [LaunchList](http://hasseg.org/launchList/) (Ali Rantakari, hasseg.org, 2009).
 
