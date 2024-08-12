@@ -258,7 +258,8 @@ struct ContentView: View {
 	@State private var showingErrorAlert = false
 	@FocusState private var isViewFocused: Bool
 	private let quickLookPreviewController = QuickLookPreviewController()
-	@EnvironmentObject private var appStateManager: AppStateManager
+
+	@Environment(\.appStateManager) private var appStateManager
 
 	init(document: Binding<StaplerDocument>) {
 		self._document = document
@@ -311,21 +312,36 @@ struct ContentView: View {
 				dismissButton: .default(Text("OK"))
 			)
 		}
-		.onChange(of: viewModel.errorMessage) { oldValue, newValue in
+		.onChange(of: viewModel.errorMessage) { newValue in
 			showingErrorAlert = newValue != nil
 		}
-		.onChange(of: document) { oldValue, newValue in
+		.onChange(of: document) { newValue in
 			viewModel.updateFromDocument(newValue)
 		}
-		.onKeyPress(.return) {
-			launchSelected()
-			return .handled
-		}
-		.onKeyPress(.space) {
-			showQuickLook()
-			return .handled
-		}
+//		.onKeyPress(.return) {
+//			launchSelected()
+//			return .handled
+//		}
+//		.onKeyPress(.space) {
+//			showQuickLook()
+//			return .handled
+//		}
 		.onAppear {
+			if #available(macOS 14.0, *) {
+				// We don't need to do anything here, as we'll use .onKeyPress modifier
+			} else {
+				NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+					if event.keyCode == 36 { // Return key
+						launchSelected()
+						return nil
+					} else if event.keyCode == 49 { // Space key
+						showQuickLook()
+						return nil
+					}
+					return event
+				}
+			}
+
 			setupNotificationObservers()
 			DispatchQueue.main.async {
 				self.isViewFocused = true
@@ -336,6 +352,29 @@ struct ContentView: View {
 			updateDocument()
 			removeNotificationObservers()
 			appStateManager.hasActiveDocument = false
+		}
+		.modifier(KeyPressModifier(launchAction: launchSelected, quickLookAction: showQuickLook))
+	}
+
+	// Define a custom modifier to handle key presses
+	struct KeyPressModifier: ViewModifier {
+		let launchAction: () -> Void
+		let quickLookAction: () -> Void
+		
+		func body(content: Content) -> some View {
+			if #available(macOS 14.0, *) {
+				content
+					.onKeyPress(.return) {
+						launchAction()
+						return .handled
+					}
+					.onKeyPress(.space) {
+						quickLookAction()
+						return .handled
+					}
+			} else {
+				content
+			}
 		}
 	}
 
@@ -473,6 +512,7 @@ struct StaplerApp: App {
 	var body: some Scene {
 		DocumentGroup(newDocument: StaplerDocument()) { file in
 			ContentView(document: file.$document)
+				.modifier(AppStateManagerModifier(appStateManager: appStateManager))
 				.onAppear {
 					appStateManager.hasActiveDocument = true
 					if let url = file.fileURL {
@@ -547,7 +587,6 @@ struct StaplerApp: App {
 			}
 		}
 		.handlesExternalEvents(matching: [UTType.staplerDocument.identifier])
-		.environmentObject(appStateManager)
 	}
 }
 
@@ -572,6 +611,33 @@ extension StaplerViewModel {
 		if let document = NSDocumentController.shared.document(for: document.fileURL ?? URL(fileURLWithPath: "/")) {
 			document.updateChangeCount(.changeDone)
 		}
+	}
+}
+
+struct AppStateManagerModifier: ViewModifier {
+	let appStateManager: AppStateManager
+	
+	func body(content: Content) -> some View {
+		#if os(macOS)
+		if #available(macOS 14.0, *) {
+			return AnyView(content.environmentObject(appStateManager))
+		} else {
+			return AnyView(content.environment(\.appStateManager, appStateManager))
+		}
+		#else
+		return AnyView(content.environment(\.appStateManager, appStateManager))
+		#endif
+	}
+}
+
+private struct AppStateManagerKey: EnvironmentKey {
+	static let defaultValue = AppStateManager()
+}
+
+extension EnvironmentValues {
+	var appStateManager: AppStateManager {
+		get { self[AppStateManagerKey.self] }
+		set { self[AppStateManagerKey.self] = newValue }
 	}
 }
 
