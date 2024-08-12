@@ -92,8 +92,9 @@ All standard macOS Document-Based App conventions are supported through the File
 - All files you select or drop are recorded only as macOS bookmarks
 - The only files that are written to are Stapler Documents
 - Network permission is required to Quick Look .webloc files
+- The app should prompt for file access permission
 - You'll want to grant additional file access permissions at:
-    - `System Settings > Privacy & Security > Full Disk Access` for full disk
+    - `System Settings > Privacy & Security > Full Disk Access`
     - [for permissions issues](https://github.com/gingerbeardman/stapler/issues/6)
 
 ---
