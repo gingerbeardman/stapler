@@ -79,8 +79,8 @@ All standard macOS Document-Based App conventions are supported through the File
 
 ### Keyboard controls
 
-|Key |Function|
-|--|----|
+|Press |Function|
+|:--|:----|
 |<kbd>Cmd</kbd> + <kbd>Return</kbd>|Add… (open file selector)|
 |<kbd>Backspace</kbd>|Remove|
 |<kbd>Space</kbd>|Quick Look|
