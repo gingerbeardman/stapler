@@ -274,8 +274,18 @@ struct ContentView: View {
 						.resizable()
 						.frame(width: 20, height: 20)
 					Text(alias.name)
+					Spacer()
+				}
+				.padding(.vertical, 4)
+				.contentShape(Rectangle())
+				.onTapGesture(count: 2) {
+					launchAlias(alias)
+				}
+				.onTapGesture(count: 1) {
+					toggleSelection(for: alias)
 				}
 			}
+			.listStyle(InsetListStyle())
 			.frame(minHeight: 200)
 		}
 		.frame(minWidth: 300, minHeight: 200)
@@ -327,19 +337,15 @@ struct ContentView: View {
 //			return .handled
 //		}
 		.onAppear {
-			if #available(macOS 14.0, *) {
-				// We don't need to do anything here, as we'll use .onKeyPress modifier
-			} else {
-				NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-					if event.keyCode == 36 { // Return key
-						launchSelected()
-						return nil
-					} else if event.keyCode == 49 { // Space key
-						showQuickLook()
-						return nil
-					}
-					return event
+			NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+				if event.keyCode == 36 { // Return key
+					launchSelected()
+					return nil
+				} else if event.keyCode == 49 { // Space key
+					showQuickLook()
+					return nil
 				}
+				return event
 			}
 
 			setupNotificationObservers()
@@ -354,6 +360,27 @@ struct ContentView: View {
 			appStateManager.hasActiveDocument = false
 		}
 		.modifier(KeyPressModifier(launchAction: launchSelected, quickLookAction: showQuickLook))
+	}
+
+	private func toggleSelection(for alias: AliasItem) {
+		if selection.contains(alias.id) {
+			selection.remove(alias.id)
+		} else {
+			selection.insert(alias.id)
+		}
+	}
+
+	private func launchAlias(_ alias: AliasItem) {
+		if let url = alias.resolveURL() {
+			let coordinator = NSFileCoordinator()
+			var error: NSError?
+			coordinator.coordinate(readingItemAt: url, options: .withoutChanges, error: &error) { url in
+				NSWorkspace.shared.open(url)
+			}
+			if let error = error {
+				viewModel.handleError(error)
+			}
+		}
 	}
 
 	// Define a custom modifier to handle key presses
