@@ -613,6 +613,14 @@ struct StaplerApp: App {
 					])
 				}
 			}
+			// Replace the default Help menu
+			CommandGroup(replacing: .help) {
+				Button("Stapler Help") {
+					if let url = URL(string: "https://github.com/gingerbeardman/stapler/blob/main/README.md") {
+						NSWorkspace.shared.open(url)
+					}
+				}
+			}
 		}
 		.handlesExternalEvents(matching: [UTType.staplerDocument.identifier])
 	}
