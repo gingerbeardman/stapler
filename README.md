@@ -10,6 +10,9 @@ More info in [the accompanying blog post](https://blog.gingerbeardman.com/2024/0
 
 [https://github.com/gingerbeardman/stapler/releases/latest](https://github.com/gingerbeardman/stapler/releases/latest)
 
+- supported: macOS 14 or newer
+- next build: will support macOS 12 and newer
+
 ## What is it?
 
 The idea is you set up a *Stapler Document* per project containing related apps, files, folders, etc.
