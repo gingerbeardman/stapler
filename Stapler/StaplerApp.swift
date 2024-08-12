@@ -191,22 +191,31 @@ class StaplerViewModel: ObservableObject {
 		objectWillChange.send()
 	}
 	
-	func addAliasesViaFileSelector() {
+	func addAliasesViaFileSelector() -> Bool {
 		let panel = NSOpenPanel()
 		panel.allowsMultipleSelection = true
 		panel.canChooseDirectories = false
 		panel.canChooseFiles = true
 		
 		if panel.runModal() == .OK {
+			var addedAliases = false
 			for url in panel.urls {
 				do {
 					let newAlias = try AliasItem(url: url)
 					addAlias(newAlias)
+					addedAliases = true
 				} catch {
 					handleError(error)
 				}
 			}
+			
+			if addedAliases {
+				hasUnsavedChanges = true
+				objectWillChange.send()
+				return true
+			}
 		}
+		return false
 	}
 	
 	func handleError(_ error: Error) {
@@ -341,7 +350,6 @@ struct ContentView: View {
 			NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
 				if event.keyCode == 36 { // Return key
 					launchSelected()
-					return nil
 				} else if event.keyCode == 49 { // Space key
 					showQuickLook()
 					return nil
@@ -425,8 +433,9 @@ struct ContentView: View {
 
 	private func setupNotificationObservers() {
 		NotificationCenter.default.addObserver(forName: .addAlias, object: nil, queue: .main) { _ in
-			viewModel.addAliasesViaFileSelector()
-			updateDocument()
+			if viewModel.addAliasesViaFileSelector() {
+				updateDocument()
+			}
 		}
 		NotificationCenter.default.addObserver(forName: .removeAlias, object: nil, queue: .main) { _ in
 			removeSelectedAliases()
@@ -455,6 +464,8 @@ struct ContentView: View {
 	}
 	
 	private func launchSelected() {
+		guard !NSEvent.modifierFlags.contains(.command) else { return }
+
 		if selection.isEmpty {
 			// If no items are selected, launch all items
 			viewModel.launchAliases(at: IndexSet(integersIn: 0..<viewModel.document.aliases.count))
