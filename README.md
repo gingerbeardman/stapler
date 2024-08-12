@@ -79,8 +79,8 @@ All standard macOS Document-Based App conventions are supported through the File
 
 ### Keyboard controls
 
-|Key |Function|
-|--|----|
+|Press |Function|
+|:--|:----|
 |<kbd>Cmd</kbd> + <kbd>Return</kbd>|Add… (open file selector)|
 |<kbd>Backspace</kbd>|Remove|
 |<kbd>Space</kbd>|Quick Look|
@@ -92,9 +92,8 @@ All standard macOS Document-Based App conventions are supported through the File
 - All files you select or drop are recorded only as macOS bookmarks
 - The only files that are written to are Stapler Documents
 - Network permission is required to Quick Look .webloc files
-- File access permission may be prompted for some folders
-- You can grant additional file access permissions at:
-    - `System Settings > Privacy & Security > Files and Folders` for specific folders
+- File access permission may be prompted for `~/Downloads`
+- So you'll need to grant additional file access permissions at:
     - `System Settings > Privacy & Security > Full Disk Access` for full disk
 
 ---
