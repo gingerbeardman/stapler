@@ -276,9 +276,10 @@ struct ContentView: View {
 					Text(alias.name)
 					Spacer()
 				}
-				.padding(.vertical, 4)
+				.padding(.vertical, 3)
 				.contentShape(Rectangle())
 				.onTapGesture(count: 2) {
+					toggleSelection(for: alias)
 					launchAlias(alias)
 				}
 				.onTapGesture(count: 1) {
