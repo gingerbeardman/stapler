@@ -502,7 +502,7 @@ struct StaplerApp: App {
 		let currentEvent = NSApplication.shared.currentEvent
 		let isOpenedFromFinder = currentEvent != nil && currentEvent?.type == .appKitDefined && currentEvent?.subtype.rawValue == NSEvent.EventSubtype.applicationActivated.rawValue
 		
-		if isOpenedFromFinder {
+		if isOpenedFromFinder && !appStateManager.wasJustLaunched {
 			
 			let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
 			
