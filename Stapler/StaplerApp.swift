@@ -69,17 +69,21 @@ struct AliasItem: Identifiable, Codable, Hashable {
 		do {
 			let url = try URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale)
 			if isStale {
+				// If the bookmark is stale, we need to create a new one
 				_ = try url.bookmarkData(options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess], includingResourceValuesForKeys: nil, relativeTo: nil)
+				if let aliasItem = try? AliasItem(id: id, url: url) {
+					return aliasItem.resolveURL()
+				}
+			}
+			if !url.startAccessingSecurityScopedResource() {
+				print("Failed to access security scoped resource")
+				return nil
 			}
 			return url
 		} catch {
-			print("StaplerApp: Alias: Error resolving bookmark: \(error)")
+			print("Error resolving bookmark: \(error)")
 			return nil
 		}
-	}
-	
-	static func == (lhs: AliasItem, rhs: AliasItem) -> Bool {
-		lhs.id == rhs.id && lhs.bookmarkData == rhs.bookmarkData
 	}
 }
 
@@ -88,7 +92,6 @@ struct StaplerDocument: FileDocument, Equatable {
 	static var writableContentTypes: [UTType] { [.staplerDocument] }
 
 	var fileURL: URL?
-
 	var aliases: [AliasItem]
 	
 	init() {
@@ -109,6 +112,7 @@ struct StaplerDocument: FileDocument, Equatable {
 		let data = try Data(contentsOf: url)
 		let decodedData = try JSONDecoder().decode(StaplerDocumentData.self, from: data)
 		self.aliases = decodedData.aliases
+		self.fileURL = url
 	}
 
 	func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
@@ -381,6 +385,10 @@ struct ContentView: View {
 
 	private func launchAlias(_ alias: AliasItem) {
 		if let url = alias.resolveURL() {
+			defer {
+				url.stopAccessingSecurityScopedResource()
+			}
+			
 			let coordinator = NSFileCoordinator()
 			var error: NSError?
 			coordinator.coordinate(readingItemAt: url, options: .withoutChanges, error: &error) { url in
@@ -522,6 +530,15 @@ struct StaplerApp: App {
 				// Launch all items and close the document
 				DispatchQueue.main.async {
 					do {
+						// Start accessing the security-scoped resource
+						guard url.startAccessingSecurityScopedResource() else {
+							logger.error("Failed to access security-scoped resource")
+							return
+						}
+						defer {
+							url.stopAccessingSecurityScopedResource()
+						}
+						
 						let document = try StaplerDocument(contentsOf: url)
 						let viewModel = StaplerViewModel(document: document)
 						viewModel.launchAliases(at: IndexSet(integersIn: 0..<document.aliases.count))
