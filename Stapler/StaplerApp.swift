@@ -4,6 +4,12 @@ import Quartz
 import os
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+	func setupDefaultCommandKeyDelay() {
+		if UserDefaults.standard.object(forKey: "CommandKeyDelay") == nil {
+			UserDefaults.standard.set(100, forKey: "CommandKeyDelay") // Default wait
+		}
+	}
+
 	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
 		let unsavedDocuments = NSDocumentController.shared.documents.filter { $0.isDocumentEdited }
 		
@@ -518,44 +524,51 @@ struct StaplerApp: App {
 	@StateObject private var appStateManager = AppStateManager()
 	private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "info")
 
+	// Add a computed property to get the delay from UserDefaults
+	private var commandKeyDelay: Double {
+		UserDefaults.standard.double(forKey: "CommandKeyDelay") / 1000.0 // Convert milliseconds to seconds
+	}
+
 	func handleDocumentOpening(_ url: URL) {
 		let currentEvent = NSApplication.shared.currentEvent
 		let isOpenedFromFinder = currentEvent != nil && currentEvent?.type == .appKitDefined && currentEvent?.subtype.rawValue == NSEvent.EventSubtype.applicationActivated.rawValue
 		
 		if isOpenedFromFinder && !appStateManager.wasJustLaunched {
-			
-			let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
-			
-			if !commandKeyPressed {
-				// Launch all items and close the document
-				DispatchQueue.main.async {
-					do {
-						// Start accessing the security-scoped resource
-						guard url.startAccessingSecurityScopedResource() else {
-							logger.error("Failed to access security-scoped resource")
-							return
-						}
-						defer {
-							url.stopAccessingSecurityScopedResource()
-						}
-						
-						let document = try StaplerDocument(contentsOf: url)
-						let viewModel = StaplerViewModel(document: document)
-						viewModel.launchAliases(at: IndexSet(integersIn: 0..<document.aliases.count))
-						
-						// Close the document
-						if let windowController = NSDocumentController.shared.document(for: url)?.windowControllers.first {
-							windowController.close()
-						}
-						
-						// If this was the only document and the app was just launched, quit the app
-						if appStateManager.wasJustLaunched && !appStateManager.hasActiveDocument {
-							DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-								NSApp.terminate(nil)
+			// Delay the check for Command key to allow it to be released
+			DispatchQueue.main.asyncAfter(deadline: .now() + commandKeyDelay) {
+				let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
+				
+				if !commandKeyPressed {
+					// Launch all items and close the document
+					DispatchQueue.main.async {
+						do {
+							// Start accessing the security-scoped resource
+							guard url.startAccessingSecurityScopedResource() else {
+								logger.error("Failed to access security-scoped resource")
+								return
 							}
+							defer {
+								url.stopAccessingSecurityScopedResource()
+							}
+							
+							let document = try StaplerDocument(contentsOf: url)
+							let viewModel = StaplerViewModel(document: document)
+							viewModel.launchAliases(at: IndexSet(integersIn: 0..<document.aliases.count))
+							
+							// Close the document
+							if let windowController = NSDocumentController.shared.document(for: url)?.windowControllers.first {
+								windowController.close()
+							}
+							
+							// If this was the only document and the app was just launched, quit the app
+							if appStateManager.wasJustLaunched && !appStateManager.hasActiveDocument {
+								DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+									NSApp.terminate(nil)
+								}
+							}
+						} catch {
+							logger.error("Error handling document opening: \(error.localizedDescription)")
 						}
-					} catch {
-						logger.error("Error handling document opening: \(error.localizedDescription)")
 					}
 				}
 			}
@@ -702,6 +715,13 @@ extension EnvironmentValues {
 	var appStateManager: AppStateManager {
 		get { self[AppStateManagerKey.self] }
 		set { self[AppStateManagerKey.self] = newValue }
+	}
+}
+
+extension UserDefaults {
+	@objc dynamic var commandKeyDelay: Int {
+		get { integer(forKey: "CommandKeyDelay") }
+		set { set(newValue, forKey: "CommandKeyDelay") }
 	}
 }
 
