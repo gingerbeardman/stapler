@@ -53,9 +53,9 @@
 			isa = PBXGroup;
 			children = (
 				C995EA3A2C6671FA00AB5C91 /* StaplerApp.swift */,
-				C995EA402C6671FB00AB5C91 /* Assets.xcassets */,
 				C995EA452C6671FC00AB5C91 /* Info.plist */,
 				C995EA462C6671FC00AB5C91 /* Stapler.entitlements */,
+				C995EA402C6671FB00AB5C91 /* Assets.xcassets */,
 				C9434CC42C67E4F60054A3F0 /* Icon Artwork.png */,
 				C995EA422C6671FC00AB5C91 /* Preview Content */,
 			);
@@ -273,7 +273,7 @@
 				CODE_SIGN_ENTITLEMENTS = Stapler/Stapler.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 240812;
+				CURRENT_PROJECT_VERSION = 240819;
 				DEVELOPMENT_ASSET_PATHS = "\"Stapler/Preview Content\"";
 				DEVELOPMENT_TEAM = Q3Z639YB49;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -289,7 +289,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gingerbeardman.Stapler;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -305,7 +305,7 @@
 				CODE_SIGN_ENTITLEMENTS = Stapler/Stapler.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 240812;
+				CURRENT_PROJECT_VERSION = 240819;
 				DEVELOPMENT_ASSET_PATHS = "\"Stapler/Preview Content\"";
 				DEVELOPMENT_TEAM = Q3Z639YB49;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -321,7 +321,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gingerbeardman.Stapler;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
