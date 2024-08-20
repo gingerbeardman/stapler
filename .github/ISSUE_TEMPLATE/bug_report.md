@@ -6,7 +6,7 @@ assignees: gingerbeardman
 
 ---
 
-If you have a question, please use Discussions (link above)
+<!-- If you have a question, please use Discussions (link above) -->
 
 **Describe the bug**
 A clear and concise description of what the bug is.
