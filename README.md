@@ -108,6 +108,8 @@ Then leave the windows of an app open as you quit it. When you next launch the a
 
 ## Get involved
 
+- Please use Discussions for any questions
+- Wiki contains info for power users
 - Bug reports and PRs are very welcome!
 
 ## Licence
