@@ -273,6 +273,7 @@ class QuickLookPreviewController: NSObject, QLPreviewPanelDataSource, QLPreviewP
 struct ContentView: View {
 	@ObservedObject private var viewModel: StaplerViewModel
 	@Binding var document: StaplerDocument
+	@Binding var hasSelection: Bool
 	@State private var selection = Set<UUID>()
 	@State private var showingErrorAlert = false
 	@FocusState private var isViewFocused: Bool
@@ -280,8 +281,9 @@ struct ContentView: View {
 
 	@Environment(\.appStateManager) private var appStateManager
 
-	init(document: Binding<StaplerDocument>) {
+	init(document: Binding<StaplerDocument>, hasSelection: Binding<Bool>) {
 		self._document = document
+		self._hasSelection = hasSelection
 		self.viewModel = StaplerViewModel(document: document.wrappedValue)
 	}
 
@@ -304,6 +306,9 @@ struct ContentView: View {
 				.onTapGesture(count: 1) {
 					toggleSelection(for: alias)
 				}
+			}
+			.onChange(of: selection) { newValue in
+				hasSelection = !newValue.isEmpty
 			}
 			.listStyle(InsetListStyle())
 			.frame(minHeight: 200)
@@ -453,7 +458,6 @@ struct ContentView: View {
 		}
 		NotificationCenter.default.addObserver(forName: .removeAlias, object: nil, queue: .main) { _ in
 			removeSelectedAliases()
-			updateDocument()
 		}
 		NotificationCenter.default.addObserver(forName: .getInfo, object: nil, queue: .main) { _ in
 			showFinderInfo()
@@ -472,9 +476,11 @@ struct ContentView: View {
 
 	private func removeSelectedAliases() {
 		let indicesToRemove = viewModel.document.aliases.indices.filter { selection.contains(viewModel.document.aliases[$0].id) }
-		viewModel.removeAliases(at: IndexSet(indicesToRemove))
-		selection.removeAll()
-		updateDocument()
+		if indicesToRemove.count != 0 {
+			viewModel.removeAliases(at: IndexSet(indicesToRemove))
+			selection.removeAll()
+			updateDocument()
+		}
 	}
 	
 	private func launchSelected() {
@@ -523,6 +529,7 @@ struct StaplerApp: App {
 	@NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 	@StateObject private var appStateManager = AppStateManager()
 	private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "info")
+	@State private var hasSelection: Bool = false
 
 	// Add a computed property to get the delay from UserDefaults
 	private var commandKeyDelay: Double {
@@ -580,7 +587,7 @@ struct StaplerApp: App {
 
 	var body: some Scene {
 		DocumentGroup(newDocument: StaplerDocument()) { file in
-			ContentView(document: file.$document)
+			ContentView(document: file.$document, hasSelection: $hasSelection)
 				.modifier(AppStateManagerModifier(appStateManager: appStateManager))
 				.onAppear {
 					appStateManager.hasActiveDocument = true
@@ -606,7 +613,7 @@ struct StaplerApp: App {
 					NotificationCenter.default.post(name: .removeAlias, object: nil)
 				}
 				.keyboardShortcut(.delete, modifiers: [])
-				.disabled(!appStateManager.hasActiveDocument)
+				.disabled(!appStateManager.hasActiveDocument || !hasSelection)
 				
 				Divider()
 				
@@ -614,13 +621,13 @@ struct StaplerApp: App {
 					NotificationCenter.default.post(name: .quickLookAlias, object: nil)
 				}
 				.keyboardShortcut(.space, modifiers: [])
-				.disabled(!appStateManager.hasActiveDocument)
+				.disabled(!appStateManager.hasActiveDocument || !hasSelection)
 				
 				Button("Reveal in Finder") {
 					NotificationCenter.default.post(name: .getInfo, object: nil)
 				}
 				.keyboardShortcut("r", modifiers: .command)
-				.disabled(!appStateManager.hasActiveDocument)
+				.disabled(!appStateManager.hasActiveDocument || !hasSelection)
 				
 				Divider()
 				
