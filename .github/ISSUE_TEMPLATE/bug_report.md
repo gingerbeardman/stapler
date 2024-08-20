@@ -7,7 +7,7 @@ assignees: gingerbeardman
 
 ---
 
-If you have a question, please head over to: https://github.com/gingerbeardman/stapler/discussions
+If you have a question, please use Discussions (link above)
 
 **Describe the bug**
 A clear and concise description of what the bug is.
