@@ -674,6 +674,13 @@ struct StaplerApp: App {
 	}
 }
 
+extension EnvironmentValues {
+	var appStateManager: AppStateManager {
+		get { self[AppStateManagerKey.self] }
+		set { self[AppStateManagerKey.self] = newValue }
+	}
+}
+
 extension Notification.Name {
 	static let addAlias = Notification.Name("addAlias")
 	static let removeAlias = Notification.Name("removeAlias")
@@ -698,6 +705,17 @@ extension StaplerViewModel {
 	}
 }
 
+extension UserDefaults {
+	@objc dynamic var commandKeyDelay: Int {
+		get { integer(forKey: "CommandKeyDelay") }
+		set { set(newValue, forKey: "CommandKeyDelay") }
+	}
+}
+
+private struct AppStateManagerKey: EnvironmentKey {
+	static let defaultValue = AppStateManager()
+}
+
 struct AppStateManagerModifier: ViewModifier {
 	let appStateManager: AppStateManager
 	
@@ -711,24 +729,6 @@ struct AppStateManagerModifier: ViewModifier {
 		#else
 		return AnyView(content.environment(\.appStateManager, appStateManager))
 		#endif
-	}
-}
-
-private struct AppStateManagerKey: EnvironmentKey {
-	static let defaultValue = AppStateManager()
-}
-
-extension EnvironmentValues {
-	var appStateManager: AppStateManager {
-		get { self[AppStateManagerKey.self] }
-		set { self[AppStateManagerKey.self] = newValue }
-	}
-}
-
-extension UserDefaults {
-	@objc dynamic var commandKeyDelay: Int {
-		get { integer(forKey: "CommandKeyDelay") }
-		set { set(newValue, forKey: "CommandKeyDelay") }
 	}
 }
 
