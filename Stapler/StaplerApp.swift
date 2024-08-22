@@ -20,13 +20,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 		setupDefaultCommandKeyDelay()
 		setupDefaultShowNewDocumentSelector()
 		
-		// Check if we should show the new document selector
-		if !UserDefaults.standard.bool(forKey: "ShowNewDocumentSelector") {
+		// Check if we should show the new document selector and if no documents are already open
+		if !UserDefaults.standard.bool(forKey: "ShowNewDocumentSelector") && NSDocumentController.shared.documents.isEmpty {
 			// If not, create a new blank document
 			DispatchQueue.main.async {
-				if NSDocumentController.shared.documents.isEmpty {
-					NSDocumentController.shared.newDocument(nil)
-				}
+				NSDocumentController.shared.newDocument(nil)
 			}
 		}
 	}
