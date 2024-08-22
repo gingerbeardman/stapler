@@ -565,7 +565,7 @@ struct StaplerApp: App {
 		let currentEvent = NSApplication.shared.currentEvent
 		let isOpenedFromFinder = currentEvent != nil && currentEvent?.type == .appKitDefined && currentEvent?.subtype.rawValue == NSEvent.EventSubtype.applicationActivated.rawValue
 		
-		if isOpenedFromFinder && !appStateManager.wasJustLaunched {
+		if isOpenedFromFinder {
 			// Delay the check for Command key to allow it to be released
 			DispatchQueue.main.asyncAfter(deadline: .now() + commandKeyDelay) {
 				let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
