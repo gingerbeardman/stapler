@@ -6,7 +6,39 @@ import os
 class AppDelegate: NSObject, NSApplicationDelegate {
 	func setupDefaultCommandKeyDelay() {
 		if UserDefaults.standard.object(forKey: "CommandKeyDelay") == nil {
-			UserDefaults.standard.set(100, forKey: "CommandKeyDelay") // Default wait
+			UserDefaults.standard.set(100, forKey: "CommandKeyDelay") // Default wait 100ms
+		}
+	}
+	
+	func setupDefaultShowNewDocumentSelector() {
+		if UserDefaults.standard.object(forKey: "ShowNewDocumentSelector") == nil {
+			UserDefaults.standard.set(true, forKey: "ShowNewDocumentSelector") // Default to Show
+		}
+	}
+
+	func applicationDidFinishLaunching(_ notification: Notification) {
+		setupDefaultCommandKeyDelay()
+		setupDefaultShowNewDocumentSelector()
+		
+		// Check if we should show the new document selector
+		if !UserDefaults.standard.bool(forKey: "ShowNewDocumentSelector") {
+			// If not, create a new blank document
+			DispatchQueue.main.async {
+				if NSDocumentController.shared.documents.isEmpty {
+					NSDocumentController.shared.newDocument(nil)
+				}
+			}
+		}
+	}
+
+	func application(_ application: NSApplication, open urls: [URL]) {
+		// Handle opening of documents from Finder
+		for url in urls {
+			NSDocumentController.shared.openDocument(withContentsOf: url, display: true) { (document, documentWasAlreadyOpen, error) in
+				if let error = error {
+					print("Error opening document: \(error.localizedDescription)")
+				}
+			}
 		}
 	}
 
@@ -518,18 +550,13 @@ struct ContentView: View {
 	}
 }
 
-extension UTType {
-	static var staplerDocument: UTType {
-		UTType(exportedAs: "com.gingerbeardman.Stapler.stapled")
-	}
-}
-
 @main
 struct StaplerApp: App {
 	@NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 	@StateObject private var appStateManager = AppStateManager()
 	private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "info")
 	@State private var hasSelection: Bool = false
+	@State private var showNewDocumentSelector: Bool = UserDefaults.standard.bool(forKey: "ShowNewDocumentSelector")
 
 	// Add a computed property to get the delay from UserDefaults
 	private var commandKeyDelay: Double {
@@ -669,6 +696,14 @@ struct StaplerApp: App {
 					}
 				}
 			}
+			// Add toggle in Stapler menu
+			CommandGroup(after: .appInfo) {
+				Divider()
+				Toggle("Show New Document Selector on Launch", isOn: $showNewDocumentSelector)
+					.onChange(of: showNewDocumentSelector) { newValue in
+						UserDefaults.standard.set(newValue, forKey: "ShowNewDocumentSelector")
+					}
+			}
 		}
 		.handlesExternalEvents(matching: [UTType.staplerDocument.identifier])
 	}
@@ -709,6 +744,12 @@ extension UserDefaults {
 	@objc dynamic var commandKeyDelay: Int {
 		get { integer(forKey: "CommandKeyDelay") }
 		set { set(newValue, forKey: "CommandKeyDelay") }
+	}
+}
+
+extension UTType {
+	static var staplerDocument: UTType {
+		UTType(exportedAs: "com.gingerbeardman.Stapler.stapled")
 	}
 }
 
