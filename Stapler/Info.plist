@@ -2,12 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSDesktopFolderUsageDescription</key>
-	<string>Stapler needs access to your files to read aliases and create and manage its own files.</string>
-	<key>NSDocumentsFolderUsageDescription</key>
-	<string>Stapler needs access to your files to read aliases and create and manage its own files.</string>
-	<key>NSDownloadsFolderUsageDescription</key>
-	<string>Stapler needs access to your files to read aliases and create and manage its own files.</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

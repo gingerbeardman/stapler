@@ -8,6 +8,7 @@ enum DocumentOpeningScenario {
 	case launchedWithDocument
 	case resumedBySystem
 	case openedThroughFileMenu
+	case openedFromFinderWhileRunning
 	case unknown
 }
 
@@ -15,7 +16,7 @@ enum DocumentOpeningScenario {
 class AppDelegate: NSObject, NSApplicationDelegate {
 	func setupDefaultCommandKeyDelay() {
 		if UserDefaults.standard.object(forKey: "CommandKeyDelay") == nil {
-			UserDefaults.standard.set(100, forKey: "CommandKeyDelay") // Default wait 100ms
+			UserDefaults.standard.set(0, forKey: "CommandKeyDelay") // Default wait 0ms
 		}
 	}
 	
@@ -585,6 +586,10 @@ struct StaplerApp: App {
 			logger.info("Document Opening Scenario: openedThroughFileMenu")
 			// Handle opened through file menu scenario
 			break
+		case .openedFromFinderWhileRunning:
+			logger.info("Document Opening Scenario: openedFromFinderWhileRunning")
+			// Handle opened through Finder whilst running scenario
+			handleOpenedFromFinderWhileRunning(url)
 		case .unknown:
 			logger.info("Document Opening Scenario: unknown")
 			// Handle unknown scenarios
@@ -601,6 +606,8 @@ struct StaplerApp: App {
 		
 		if appStateManager.wasJustLaunched && isOpenedFromFinder {
 			return .launchedWithDocument
+		} else if isOpenedFromFinder && NSApp.isActive {
+			return .openedFromFinderWhileRunning
 		} else if NSApp.isActive {
 			return .openedThroughFileMenu
 		} else if ProcessInfo.processInfo.isOperatingSystemAtLeast(OperatingSystemVersion(majorVersion: 10, minorVersion: 15, patchVersion: 0)) {
@@ -612,38 +619,65 @@ struct StaplerApp: App {
 	}
 
 	private func handleLaunchedWithDocument(_ url: URL) {
-		 DispatchQueue.main.asyncAfter(deadline: .now() + commandKeyDelay) {
-			 let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
-			 
-			 if !commandKeyPressed {
-				 do {
-					 guard url.startAccessingSecurityScopedResource() else {
-						 logger.error("Failed to access security-scoped resource")
-						 return
-					 }
-					 defer { url.stopAccessingSecurityScopedResource() }
-					 
-					 let document = try StaplerDocument(contentsOf: url)
-					 let viewModel = StaplerViewModel(document: document)
-					 viewModel.launchAliases(at: IndexSet(integersIn: 0..<document.aliases.count))
-					 
-					 // Close the document
-					 if let windowController = NSDocumentController.shared.document(for: url)?.windowControllers.first {
-						 windowController.close()
-					 }
-					 
-					 // If this was the only document and the app was just launched, quit the app
-					 if NSDocumentController.shared.documents.count == 1 {
-						 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-							 NSApp.terminate(nil)
-						 }
-					 }
-				 } catch {
-					 logger.error("Error handling document opening: \(error.localizedDescription)")
-				 }
-			 }
-		 }
-	 }
+		DispatchQueue.main.asyncAfter(deadline: .now() + commandKeyDelay) {
+			let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
+			
+			if !commandKeyPressed {
+				do {
+					guard url.startAccessingSecurityScopedResource() else {
+						logger.error("Failed to access security-scoped resource")
+						return
+					}
+					defer { url.stopAccessingSecurityScopedResource() }
+					
+					let document = try StaplerDocument(contentsOf: url)
+					let viewModel = StaplerViewModel(document: document)
+					viewModel.launchAliases(at: IndexSet(integersIn: 0..<document.aliases.count))
+					
+					// Close the document
+					if let windowController = NSDocumentController.shared.document(for: url)?.windowControllers.first {
+						windowController.close()
+					}
+					
+					// If this was the only document and the app was just launched, quit the app
+					if NSDocumentController.shared.documents.count == 1 {
+						DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+							NSApp.terminate(nil)
+						}
+					}
+				} catch {
+					logger.error("Error handling document opening: \(error.localizedDescription)")
+				}
+			}
+		}
+	}
+
+	private func handleOpenedFromFinderWhileRunning(_ url: URL) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + commandKeyDelay) {
+			let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
+			
+			if !commandKeyPressed {
+				do {
+					guard url.startAccessingSecurityScopedResource() else {
+						logger.error("Failed to access security-scoped resource")
+						return
+					}
+					defer { url.stopAccessingSecurityScopedResource() }
+					
+					let document = try StaplerDocument(contentsOf: url)
+					let viewModel = StaplerViewModel(document: document)
+					viewModel.launchAliases(at: IndexSet(integersIn: 0..<document.aliases.count))
+					
+					// Close the document
+					if let windowController = NSDocumentController.shared.document(for: url)?.windowControllers.first {
+						windowController.close()
+					}
+				} catch {
+					logger.error("Error handling document opening: \(error.localizedDescription)")
+				}
+			}
+		}
+	}
 
 	var body: some Scene {
 		DocumentGroup(newDocument: StaplerDocument()) { file in
