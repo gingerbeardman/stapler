@@ -3,7 +3,53 @@ import UniformTypeIdentifiers
 import Quartz
 import os
 
+// Define an enum for the different document opening scenarios
+enum DocumentOpeningScenario {
+	case launchedWithDocument
+	case resumedBySystem
+	case openedThroughFileMenu
+	case openedFromFinderWhileRunning
+	case unknown
+}
+
+// Modify the AppDelegate to work with the new AppStateManager
 class AppDelegate: NSObject, NSApplicationDelegate {
+	func setupDefaultCommandKeyDelay() {
+		if UserDefaults.standard.object(forKey: "CommandKeyDelay") == nil {
+			UserDefaults.standard.set(0, forKey: "CommandKeyDelay") // Default wait 0ms
+		}
+	}
+	
+	func setupDefaultShowNewDocumentSelector() {
+		if UserDefaults.standard.object(forKey: "ShowNewDocumentSelector") == nil {
+			UserDefaults.standard.set(true, forKey: "ShowNewDocumentSelector") // Default to Show
+		}
+	}
+
+	func applicationDidFinishLaunching(_ notification: Notification) {
+		setupDefaultCommandKeyDelay()
+		setupDefaultShowNewDocumentSelector()
+		
+		// Check if we should show the new document selector and if no documents are already open
+		if !UserDefaults.standard.bool(forKey: "ShowNewDocumentSelector") && NSDocumentController.shared.documents.isEmpty {
+			// If not, create a new blank document
+			DispatchQueue.main.async {
+				NSDocumentController.shared.newDocument(nil)
+			}
+		}
+	}
+
+	func application(_ application: NSApplication, open urls: [URL]) {
+		// Handle opening of documents from Finder
+		for url in urls {
+			NSDocumentController.shared.openDocument(withContentsOf: url, display: true) { (document, documentWasAlreadyOpen, error) in
+				if let error = error {
+					print("Error opening document: \(error.localizedDescription)")
+				}
+			}
+		}
+	}
+
 	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
 		let unsavedDocuments = NSDocumentController.shared.documents.filter { $0.isDocumentEdited }
 		
@@ -69,17 +115,21 @@ struct AliasItem: Identifiable, Codable, Hashable {
 		do {
 			let url = try URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale)
 			if isStale {
+				// If the bookmark is stale, we need to create a new one
 				_ = try url.bookmarkData(options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess], includingResourceValuesForKeys: nil, relativeTo: nil)
+				if let aliasItem = try? AliasItem(id: id, url: url) {
+					return aliasItem.resolveURL()
+				}
+			}
+			if !url.startAccessingSecurityScopedResource() {
+				print("Failed to access security scoped resource")
+				return nil
 			}
 			return url
 		} catch {
-			print("StaplerApp: Alias: Error resolving bookmark: \(error)")
+			print("Error resolving bookmark: \(error)")
 			return nil
 		}
-	}
-	
-	static func == (lhs: AliasItem, rhs: AliasItem) -> Bool {
-		lhs.id == rhs.id && lhs.bookmarkData == rhs.bookmarkData
 	}
 }
 
@@ -88,7 +138,6 @@ struct StaplerDocument: FileDocument, Equatable {
 	static var writableContentTypes: [UTType] { [.staplerDocument] }
 
 	var fileURL: URL?
-
 	var aliases: [AliasItem]
 	
 	init() {
@@ -109,6 +158,7 @@ struct StaplerDocument: FileDocument, Equatable {
 		let data = try Data(contentsOf: url)
 		let decodedData = try JSONDecoder().decode(StaplerDocumentData.self, from: data)
 		self.aliases = decodedData.aliases
+		self.fileURL = url
 	}
 
 	func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
@@ -263,6 +313,7 @@ class QuickLookPreviewController: NSObject, QLPreviewPanelDataSource, QLPreviewP
 struct ContentView: View {
 	@ObservedObject private var viewModel: StaplerViewModel
 	@Binding var document: StaplerDocument
+	@Binding var hasSelection: Bool
 	@State private var selection = Set<UUID>()
 	@State private var showingErrorAlert = false
 	@FocusState private var isViewFocused: Bool
@@ -270,8 +321,9 @@ struct ContentView: View {
 
 	@Environment(\.appStateManager) private var appStateManager
 
-	init(document: Binding<StaplerDocument>) {
+	init(document: Binding<StaplerDocument>, hasSelection: Binding<Bool>) {
 		self._document = document
+		self._hasSelection = hasSelection
 		self.viewModel = StaplerViewModel(document: document.wrappedValue)
 	}
 
@@ -294,6 +346,9 @@ struct ContentView: View {
 				.onTapGesture(count: 1) {
 					toggleSelection(for: alias)
 				}
+			}
+			.onChange(of: selection) { newValue in
+				hasSelection = !newValue.isEmpty
 			}
 			.listStyle(InsetListStyle())
 			.frame(minHeight: 200)
@@ -418,6 +473,10 @@ struct ContentView: View {
 
 	private func launchAlias(_ alias: AliasItem) {
 		if let url = alias.resolveURL() {
+			defer {
+				url.stopAccessingSecurityScopedResource()
+			}
+			
 			let coordinator = NSFileCoordinator()
 			var error: NSError?
 			coordinator.coordinate(readingItemAt: url, options: .withoutChanges, error: &error) { url in
@@ -476,7 +535,6 @@ struct ContentView: View {
 		}
 		NotificationCenter.default.addObserver(forName: .removeAlias, object: nil, queue: .main) { _ in
 			removeSelectedAliases()
-			updateDocument()
 		}
 		NotificationCenter.default.addObserver(forName: .getInfo, object: nil, queue: .main) { _ in
 			showFinderInfo()
@@ -495,9 +553,11 @@ struct ContentView: View {
 
 	private func removeSelectedAliases() {
 		let indicesToRemove = viewModel.document.aliases.indices.filter { selection.contains(viewModel.document.aliases[$0].id) }
-		viewModel.removeAliases(at: IndexSet(indicesToRemove))
-		selection.removeAll()
-		updateDocument()
+		if indicesToRemove.count != 0 {
+			viewModel.removeAliases(at: IndexSet(indicesToRemove))
+			selection.removeAll()
+			updateDocument()
+		}
 	}
 	
 	private func launchSelected() {
@@ -535,59 +595,130 @@ struct ContentView: View {
 	}
 }
 
-extension UTType {
-	static var staplerDocument: UTType {
-		UTType(exportedAs: "com.gingerbeardman.Stapler.stapled")
-	}
-}
-
 @main
 struct StaplerApp: App {
 	@NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 	@StateObject private var appStateManager = AppStateManager()
 	private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "info")
+	@State private var hasSelection: Bool = false
+	@State private var showNewDocumentSelector: Bool = UserDefaults.standard.bool(forKey: "ShowNewDocumentSelector")
+
+	// Add a computed property to get the delay from UserDefaults
+	private var commandKeyDelay: Double {
+		UserDefaults.standard.double(forKey: "CommandKeyDelay") / 1000.0 // Convert milliseconds to seconds
+	}
 
 	func handleDocumentOpening(_ url: URL) {
-		let currentEvent = NSApplication.shared.currentEvent
-		let isOpenedFromFinder = currentEvent != nil && currentEvent?.type == .appKitDefined && currentEvent?.subtype.rawValue == NSEvent.EventSubtype.applicationActivated.rawValue
-		
-		if isOpenedFromFinder && !appStateManager.wasJustLaunched {
-			
-			let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
-			
-			if !commandKeyPressed {
-				// Launch all items and close the document
-				DispatchQueue.main.async {
-					do {
-						let document = try StaplerDocument(contentsOf: url)
-						let viewModel = StaplerViewModel(document: document)
-						viewModel.launchAliases(at: IndexSet(integersIn: 0..<document.aliases.count))
-						
-						// Close the document
-						if let windowController = NSDocumentController.shared.document(for: url)?.windowControllers.first {
-							windowController.close()
-						}
-						
-						// If this was the only document and the app was just launched, quit the app
-						if appStateManager.wasJustLaunched && !appStateManager.hasActiveDocument {
-							DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-								NSApp.terminate(nil)
-							}
-						}
-					} catch {
-						logger.error("Error handling document opening: \(error.localizedDescription)")
-					}
-				}
-			}
+		let scenario = determineOpeningScenario()
+
+		switch scenario {
+		case .launchedWithDocument:
+			logger.info("Document Opening Scenario: launchedWithDocument")
+			handleLaunchedWithDocument(url)
+		case .resumedBySystem:
+			logger.info("Document Opening Scenario: resumedBySystem")
+			// Handle resumed by system scenario
+			break
+		case .openedThroughFileMenu:
+			logger.info("Document Opening Scenario: openedThroughFileMenu")
+			// Handle opened through file menu scenario
+			break
+		case .openedFromFinderWhileRunning:
+			logger.info("Document Opening Scenario: openedFromFinderWhileRunning")
+			// Handle opened through Finder whilst running scenario
+			handleOpenedFromFinderWhileRunning(url)
+		case .unknown:
+			logger.info("Document Opening Scenario: unknown")
+			// Handle unknown scenarios
+			break
 		}
 		
 		// Reset the wasJustLaunched flag
 		appStateManager.wasJustLaunched = false
 	}
 
+	private func determineOpeningScenario() -> DocumentOpeningScenario {
+		let currentEvent = NSApplication.shared.currentEvent
+		let isOpenedFromFinder = currentEvent != nil && currentEvent?.type == .appKitDefined && currentEvent?.subtype.rawValue == NSEvent.EventSubtype.applicationActivated.rawValue
+		
+		if appStateManager.wasJustLaunched && isOpenedFromFinder {
+			return .launchedWithDocument
+		} else if isOpenedFromFinder && NSApp.isActive {
+			return .openedFromFinderWhileRunning
+		} else if NSApp.isActive {
+			return .openedThroughFileMenu
+		} else if ProcessInfo.processInfo.isOperatingSystemAtLeast(OperatingSystemVersion(majorVersion: 10, minorVersion: 15, patchVersion: 0)) {
+			// Check if the app was resumed by the system (macOS 10.15+)
+			return .resumedBySystem
+		} else {
+			return .unknown
+		}
+	}
+
+	private func handleLaunchedWithDocument(_ url: URL) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + commandKeyDelay) {
+			let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
+			
+			if !commandKeyPressed {
+				do {
+					guard url.startAccessingSecurityScopedResource() else {
+						logger.error("Failed to access security-scoped resource")
+						return
+					}
+					defer { url.stopAccessingSecurityScopedResource() }
+					
+					let document = try StaplerDocument(contentsOf: url)
+					let viewModel = StaplerViewModel(document: document)
+					viewModel.launchAliases(at: IndexSet(integersIn: 0..<document.aliases.count))
+					
+					// Close the document
+					if let windowController = NSDocumentController.shared.document(for: url)?.windowControllers.first {
+						windowController.close()
+					}
+					
+					// If this was the only document and the app was just launched, quit the app
+					if NSDocumentController.shared.documents.count == 1 {
+						DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+							NSApp.terminate(nil)
+						}
+					}
+				} catch {
+					logger.error("Error handling document opening: \(error.localizedDescription)")
+				}
+			}
+		}
+	}
+
+	private func handleOpenedFromFinderWhileRunning(_ url: URL) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + commandKeyDelay) {
+			let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
+			
+			if !commandKeyPressed {
+				do {
+					guard url.startAccessingSecurityScopedResource() else {
+						logger.error("Failed to access security-scoped resource")
+						return
+					}
+					defer { url.stopAccessingSecurityScopedResource() }
+					
+					let document = try StaplerDocument(contentsOf: url)
+					let viewModel = StaplerViewModel(document: document)
+					viewModel.launchAliases(at: IndexSet(integersIn: 0..<document.aliases.count))
+					
+					// Close the document
+					if let windowController = NSDocumentController.shared.document(for: url)?.windowControllers.first {
+						windowController.close()
+					}
+				} catch {
+					logger.error("Error handling document opening: \(error.localizedDescription)")
+				}
+			}
+		}
+	}
+
 	var body: some Scene {
 		DocumentGroup(newDocument: StaplerDocument()) { file in
-			ContentView(document: file.$document)
+			ContentView(document: file.$document, hasSelection: $hasSelection)
 				.modifier(AppStateManagerModifier(appStateManager: appStateManager))
 				.onAppear {
 					appStateManager.hasActiveDocument = true
@@ -613,7 +744,7 @@ struct StaplerApp: App {
 					NotificationCenter.default.post(name: .removeAlias, object: nil)
 				}
 				.keyboardShortcut(.delete, modifiers: [])
-				.disabled(!appStateManager.hasActiveDocument)
+				.disabled(!appStateManager.hasActiveDocument || !hasSelection)
 				
 				Divider()
 				
@@ -621,13 +752,13 @@ struct StaplerApp: App {
 					NotificationCenter.default.post(name: .quickLookAlias, object: nil)
 				}
 				.keyboardShortcut(.space, modifiers: [])
-				.disabled(!appStateManager.hasActiveDocument)
+				.disabled(!appStateManager.hasActiveDocument || !hasSelection)
 				
 				Button("Reveal in Finder") {
 					NotificationCenter.default.post(name: .getInfo, object: nil)
 				}
 				.keyboardShortcut("r", modifiers: .command)
-				.disabled(!appStateManager.hasActiveDocument)
+				.disabled(!appStateManager.hasActiveDocument || !hasSelection)
 				
 				Divider()
 				
@@ -669,8 +800,23 @@ struct StaplerApp: App {
 					}
 				}
 			}
+			// Add toggle in Stapler menu
+			CommandGroup(after: .appInfo) {
+				Divider()
+				Toggle("Show New Document Selector on Launch", isOn: $showNewDocumentSelector)
+					.onChange(of: showNewDocumentSelector) { newValue in
+						UserDefaults.standard.set(newValue, forKey: "ShowNewDocumentSelector")
+					}
+			}
 		}
 		.handlesExternalEvents(matching: [UTType.staplerDocument.identifier])
+	}
+}
+
+extension EnvironmentValues {
+	var appStateManager: AppStateManager {
+		get { self[AppStateManagerKey.self] }
+		set { self[AppStateManagerKey.self] = newValue }
 	}
 }
 
@@ -698,6 +844,23 @@ extension StaplerViewModel {
 	}
 }
 
+extension UserDefaults {
+	@objc dynamic var commandKeyDelay: Int {
+		get { integer(forKey: "CommandKeyDelay") }
+		set { set(newValue, forKey: "CommandKeyDelay") }
+	}
+}
+
+extension UTType {
+	static var staplerDocument: UTType {
+		UTType(exportedAs: "com.gingerbeardman.Stapler.stapled")
+	}
+}
+
+private struct AppStateManagerKey: EnvironmentKey {
+	static let defaultValue = AppStateManager()
+}
+
 struct AppStateManagerModifier: ViewModifier {
 	let appStateManager: AppStateManager
 	
@@ -711,17 +874,6 @@ struct AppStateManagerModifier: ViewModifier {
 		#else
 		return AnyView(content.environment(\.appStateManager, appStateManager))
 		#endif
-	}
-}
-
-private struct AppStateManagerKey: EnvironmentKey {
-	static let defaultValue = AppStateManager()
-}
-
-extension EnvironmentValues {
-	var appStateManager: AppStateManager {
-		get { self[AppStateManagerKey.self] }
-		set { self[AppStateManagerKey.self] = newValue }
 	}
 }
 

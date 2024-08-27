@@ -53,9 +53,9 @@
 			isa = PBXGroup;
 			children = (
 				C995EA3A2C6671FA00AB5C91 /* StaplerApp.swift */,
-				C995EA402C6671FB00AB5C91 /* Assets.xcassets */,
 				C995EA452C6671FC00AB5C91 /* Info.plist */,
 				C995EA462C6671FC00AB5C91 /* Stapler.entitlements */,
+				C995EA402C6671FB00AB5C91 /* Assets.xcassets */,
 				C9434CC42C67E4F60054A3F0 /* Icon Artwork.png */,
 				C995EA422C6671FC00AB5C91 /* Preview Content */,
 			);
@@ -273,7 +273,7 @@
 				CODE_SIGN_ENTITLEMENTS = Stapler/Stapler.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 240812;
+				CURRENT_PROJECT_VERSION = 240823;
 				DEVELOPMENT_ASSET_PATHS = "\"Stapler/Preview Content\"";
 				DEVELOPMENT_TEAM = Q3Z639YB49;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -281,15 +281,15 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Stapler/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "This app needs access to your Desktop folder to open and manage files.";
-				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "This app needs access to your Documents folder to open and manage files.";
-				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "This app needs access to your Downloads folder to open and manage files.";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2024 Matt Sephton.\nAll rights reserved.";
+				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "Stapler needs access to your files to read aliases and create and manage its own files.";
+				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "Stapler needs access to your files to read aliases and create and manage its own files.";
+				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "Stapler needs access to your files to read aliases and create and manage its own files.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2024 Matt Sephton";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gingerbeardman.Stapler;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -305,7 +305,7 @@
 				CODE_SIGN_ENTITLEMENTS = Stapler/Stapler.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 240812;
+				CURRENT_PROJECT_VERSION = 240823;
 				DEVELOPMENT_ASSET_PATHS = "\"Stapler/Preview Content\"";
 				DEVELOPMENT_TEAM = Q3Z639YB49;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -313,15 +313,15 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Stapler/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "This app needs access to your Desktop folder to open and manage files.";
-				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "This app needs access to your Documents folder to open and manage files.";
-				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "This app needs access to your Downloads folder to open and manage files.";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2024 Matt Sephton.\nAll rights reserved.";
+				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "Stapler needs access to your files to read aliases and create and manage its own files.";
+				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "Stapler needs access to your files to read aliases and create and manage its own files.";
+				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "Stapler needs access to your files to read aliases and create and manage its own files.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2024 Matt Sephton";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gingerbeardman.Stapler;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
