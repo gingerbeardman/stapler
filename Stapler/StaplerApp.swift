@@ -268,7 +268,7 @@ class StaplerViewModel: ObservableObject {
 		return false
 	}
 	
-	func handleError(_ error: Error) {
+    func handleError(_ error: Error) {
 		DispatchQueue.main.async {
 			self.errorMessage = error.localizedDescription
 		}
@@ -355,29 +355,66 @@ struct ContentView: View {
 		}
 		.frame(minWidth: 300, minHeight: 200)
 		.focused($isViewFocused)
-		.onDrop(of: [.fileURL], isTargeted: nil) { providers in
-			let wasEmpty = viewModel.document.aliases.isEmpty
-			for provider in providers {
-				_ = provider.loadObject(ofClass: URL.self) { url, error in
-					if let error = error {
-						viewModel.handleError(error)
-					} else if let url = url {
-						DispatchQueue.main.async {
-							do {
-								let newAlias = try AliasItem(url: url)
-								viewModel.addAlias(newAlias)
-								if wasEmpty {
-									updateDocument()
-								} else {
-									document.aliases = viewModel.document.aliases
-								}
-							} catch {
-								viewModel.handleError(error)
-							}
-						}
-					}
-				}
-			}
+        .onDrop(of: [.url, .urlBookmarkData], isTargeted: nil) { providers in
+            let wasEmpty = viewModel.document.aliases.isEmpty
+            for provider in providers {
+                _ = provider.loadObject(ofClass: URL.self) { url, error in
+                    if let error = error {
+                        viewModel.handleError(error)
+                    } else if let url = url {
+                        DispatchQueue.main.async {
+                            do {
+                                let newAlias = try AliasItem(url: url)
+                                viewModel.addAlias(newAlias)
+                                if wasEmpty {
+                                    updateDocument()
+                                } else {
+                                    document.aliases = viewModel.document.aliases
+                                }
+                            } catch {
+                                viewModel.handleError(error)
+                            }
+                        }
+                    }
+                }
+            }
+            // If there are no items conforming to the specified types, check for file promise receivers in the pasteboard
+            let pasteboard = NSPasteboard(name: .drag)
+            guard let filePromises = pasteboard.readObjects(forClasses: [NSFilePromiseReceiver.self], options: nil),
+                  let receiver = filePromises.first as? NSFilePromiseReceiver else {
+              return false
+            }
+            
+            // Process the first file promise receiver
+            let queue = OperationQueue()
+            receiver.receivePromisedFiles(atDestination: FileManager.default.temporaryDirectory, //URL.temporaryDirectory,
+                                          operationQueue: queue) { (url, error) in
+              if let error = error {
+                print("Error loading dropped item from pasteboard: \(error.localizedDescription)")
+              } else {
+                  DispatchQueue.main.async {
+                      // url is a .webloc
+                      let data = try? Data.init(contentsOf: url) as Data
+                      // turn webloc contents (xml) into plist dict
+                      let dict = try! PropertyListSerialization.propertyList(from:data ?? Data(), options: [], format: nil) as! [String:Any]
+                      let urlString = dict["URL"] as! String
+                      let newUrl = URL(string: urlString)
+                      do {
+                          let newAlias = try AliasItem(url: url)
+                          viewModel.addAlias(newAlias)
+                          if wasEmpty {
+                              updateDocument()
+                          } else {
+                              document.aliases = viewModel.document.aliases
+                          }
+                      } catch {
+                          viewModel.handleError(error)
+                      }
+
+                  }
+              }
+            }
+
 			return true
 		}
 		.alert(isPresented: $showingErrorAlert) {
