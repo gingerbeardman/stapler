@@ -10,6 +10,7 @@
 		C995EA3B2C6671FA00AB5C91 /* StaplerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C995EA3A2C6671FA00AB5C91 /* StaplerApp.swift */; };
 		C995EA412C6671FB00AB5C91 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C995EA402C6671FB00AB5C91 /* Assets.xcassets */; };
 		C995EA442C6671FC00AB5C91 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C995EA432C6671FC00AB5C91 /* Preview Assets.xcassets */; };
+		C9CRED1TS2D4F000100AB5C /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = C9CRED1TS2D4F000000AB5C /* Credits.rtf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +21,7 @@
 		C995EA432C6671FC00AB5C91 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		C995EA452C6671FC00AB5C91 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C995EA462C6671FC00AB5C91 /* Stapler.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Stapler.entitlements; sourceTree = "<group>"; };
+		C9CRED1TS2D4F000000AB5C /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +55,7 @@
 			isa = PBXGroup;
 			children = (
 				C995EA3A2C6671FA00AB5C91 /* StaplerApp.swift */,
+				C9CRED1TS2D4F000000AB5C /* Credits.rtf */,
 				C995EA452C6671FC00AB5C91 /* Info.plist */,
 				C995EA462C6671FC00AB5C91 /* Stapler.entitlements */,
 				C995EA402C6671FB00AB5C91 /* Assets.xcassets */,
@@ -98,7 +101,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					C995EA362C6671FA00AB5C91 = {
 						CreatedOnToolsVersion = 15.4;
@@ -128,6 +131,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C9CRED1TS2D4F000100AB5C /* Credits.rtf in Resources */,
 				C995EA442C6671FC00AB5C91 /* Preview Assets.xcassets in Resources */,
 				C995EA412C6671FB00AB5C91 /* Assets.xcassets in Resources */,
 			);
@@ -181,7 +185,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = Q3Z639YB49;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -205,6 +211,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -244,7 +251,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = Q3Z639YB49;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -261,6 +270,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -274,10 +284,14 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 240823;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Stapler/Preview Content\"";
-				DEVELOPMENT_TEAM = Q3Z639YB49;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readonly;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Stapler/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
@@ -306,10 +320,14 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 240823;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Stapler/Preview Content\"";
-				DEVELOPMENT_TEAM = Q3Z639YB49;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readonly;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Stapler/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";

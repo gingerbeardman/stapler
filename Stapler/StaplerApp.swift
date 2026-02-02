@@ -277,7 +277,6 @@ class StaplerViewModel: ObservableObject {
 
 class QuickLookPreviewController: NSObject, QLPreviewPanelDataSource, QLPreviewPanelDelegate {
 	var previewItems: [AliasItem] = []
-	var currentPreviewItemIndex: Int = 0
 
 	func numberOfPreviewItems(in panel: QLPreviewPanel!) -> Int {
 		return previewItems.count
@@ -480,8 +479,6 @@ struct ContentView: View {
 		}
 
 		quickLookPreviewController.previewItems = viewModel.document.aliases
-		quickLookPreviewController.currentPreviewItemIndex = selectedIndex
-
 		if let panel = QLPreviewPanel.shared() {
 			panel.dataSource = quickLookPreviewController
 			panel.delegate = quickLookPreviewController
@@ -731,30 +728,6 @@ struct StaplerApp: App {
 				.keyboardShortcut(.return, modifiers: [])
 				.disabled(!appStateManager.hasActiveDocument)
 			}
-			// Add the About menu item with linked credits
-			CommandGroup(replacing: .appInfo) {
-				Button("About Stapler") {
-					let creditString = "Inspired by: Stapler (1992) & LaunchList (2009)\n\ngithub.com/gingerbeardman/stapler"
-					let attributedString = NSMutableAttributedString(string: creditString)
-					
-					// Apply the base attributes to the entire string
-					let baseAttributes: [NSAttributedString.Key: Any] = [
-						.font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize),
-						.foregroundColor: NSColor.secondaryLabelColor
-					]
-					attributedString.addAttributes(baseAttributes, range: NSRange(location: 0, length: creditString.count))
-					
-					// Find the range of the text and apply the link attribute
-					if let range = creditString.range(of: "github.com/gingerbeardman/stapler") {
-						let nsRange = NSRange(range, in: creditString)
-						attributedString.addAttribute(.link, value: "https://github.com/gingerbeardman/stapler", range: nsRange)
-					}
-					
-					NSApp.orderFrontStandardAboutPanel(options: [
-						NSApplication.AboutPanelOptionKey.credits: attributedString
-					])
-				}
-			}
 			// Replace the default Help menu
 			CommandGroup(replacing: .help) {
 				Button("Stapler Help") {
@@ -791,26 +764,11 @@ extension Notification.Name {
 	static let quickLookAlias = Notification.Name("quickLookAlias")
 }
 
-extension Scene {
-	func disableTextEditingCommands() -> some Scene {
-		self.commands {
-			TextEditingCommands()
-		}
-	}
-}
-
 extension StaplerViewModel {
 	func markDocumentAsEdited() {
 		if let document = NSDocumentController.shared.document(for: document.fileURL ?? URL(fileURLWithPath: "/")) {
 			document.updateChangeCount(.changeDone)
 		}
-	}
-}
-
-extension UserDefaults {
-	@objc dynamic var commandKeyDelay: Int {
-		get { integer(forKey: "CommandKeyDelay") }
-		set { set(newValue, forKey: "CommandKeyDelay") }
 	}
 }
 
