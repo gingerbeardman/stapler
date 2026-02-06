@@ -298,7 +298,7 @@
 				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "Stapler needs access to your files to read aliases and create and manage its own files.";
 				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "Stapler needs access to your files to read aliases and create and manage its own files.";
 				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "Stapler needs access to your files to read aliases and create and manage its own files.";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2024 Matt Sephton";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2024–2026 Matt Sephton";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -334,7 +334,7 @@
 				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "Stapler needs access to your files to read aliases and create and manage its own files.";
 				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "Stapler needs access to your files to read aliases and create and manage its own files.";
 				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "Stapler needs access to your files to read aliases and create and manage its own files.";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2024 Matt Sephton";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2024–2026 Matt Sephton";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

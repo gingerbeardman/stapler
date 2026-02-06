@@ -328,29 +328,42 @@ struct ContentView: View {
 
 	var body: some View {
 		VStack {
-			List(viewModel.document.aliases, id: \.id, selection: $selection) { alias in
-				HStack {
-					Image(nsImage: alias.icon)
-						.resizable()
-						.frame(width: 20, height: 20)
-					Text(alias.name)
-					Spacer()
+			ZStack {
+				List(viewModel.document.aliases, id: \.id, selection: $selection) { alias in
+					HStack {
+						Image(nsImage: alias.icon)
+							.resizable()
+							.frame(width: 20, height: 20)
+						Text(alias.name)
+						Spacer()
+					}
+					.padding(.vertical, 3)
+					.contentShape(Rectangle())
+					.onTapGesture(count: 2) {
+						toggleSelection(for: alias)
+						launchAlias(alias)
+					}
+					.onTapGesture(count: 1) {
+						toggleSelection(for: alias)
+					}
 				}
-				.padding(.vertical, 3)
-				.contentShape(Rectangle())
-				.onTapGesture(count: 2) {
-					toggleSelection(for: alias)
-					launchAlias(alias)
+				.onChange(of: selection) { newValue in
+					hasSelection = !newValue.isEmpty
 				}
-				.onTapGesture(count: 1) {
-					toggleSelection(for: alias)
+				.listStyle(InsetListStyle())
+				.frame(minHeight: 200)
+
+				if viewModel.document.aliases.isEmpty {
+					VStack(spacing: 8) {
+						Text("No Items")
+							.font(.headline)
+							.foregroundColor(.secondary)
+						Text("Use Items \u{2192} Add or drag files here")
+							.font(.subheadline)
+							.foregroundColor(.secondary)
+					}
 				}
 			}
-			.onChange(of: selection) { newValue in
-				hasSelection = !newValue.isEmpty
-			}
-			.listStyle(InsetListStyle())
-			.frame(minHeight: 200)
 		}
 		.frame(minWidth: 300, minHeight: 200)
 		.focused($isViewFocused)
