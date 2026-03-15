@@ -205,13 +205,13 @@ class StaplerViewModel: ObservableObject {
 		document.aliases.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
 	}
 
-	func launchAliases(at offsets: IndexSet) {
+	private func coordinateAliases(at offsets: IndexSet, action: @escaping (URL) -> Void) {
 		for index in offsets {
 			if let url = document.aliases[index].resolveURL() {
 				let coordinator = NSFileCoordinator()
 				var error: NSError?
 				coordinator.coordinate(readingItemAt: url, options: .withoutChanges, error: &error) { url in
-					NSWorkspace.shared.open(url)
+					action(url)
 				}
 				if let error = error {
 					handleError(error)
@@ -219,19 +219,16 @@ class StaplerViewModel: ObservableObject {
 			}
 		}
 	}
-	
+
+	func launchAliases(at offsets: IndexSet) {
+		coordinateAliases(at: offsets) { url in
+			NSWorkspace.shared.open(url)
+		}
+	}
+
 	func showFinderInfo(at offsets: IndexSet) {
-		for index in offsets {
-			if let url = document.aliases[index].resolveURL() {
-				let coordinator = NSFileCoordinator()
-				var error: NSError?
-				coordinator.coordinate(readingItemAt: url, options: .withoutChanges, error: &error) { url in
-					NSWorkspace.shared.activateFileViewerSelecting([url])
-				}
-				if let error = error {
-					handleError(error)
-				}
-			}
+		coordinateAliases(at: offsets) { url in
+			NSWorkspace.shared.activateFileViewerSelecting([url])
 		}
 	}
 	
@@ -628,10 +625,10 @@ struct StaplerApp: App {
 		}
 	}
 
-	private func handleLaunchedWithDocument(_ url: URL) {
+	private func openAndLaunchAliases(from url: URL, shouldQuitIfOnly: Bool) {
 		DispatchQueue.main.asyncAfter(deadline: .now() + commandKeyDelay) {
 			let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
-			
+
 			if !commandKeyPressed {
 				do {
 					guard url.startAccessingSecurityScopedResource() else {
@@ -639,18 +636,17 @@ struct StaplerApp: App {
 						return
 					}
 					defer { url.stopAccessingSecurityScopedResource() }
-					
+
 					let document = try StaplerDocument(contentsOf: url)
 					let viewModel = StaplerViewModel(document: document)
 					viewModel.launchAliases(at: IndexSet(integersIn: 0..<document.aliases.count))
-					
+
 					// Close the document
 					if let windowController = NSDocumentController.shared.document(for: url)?.windowControllers.first {
 						windowController.close()
 					}
-					
-					// If this was the only document and the app was just launched, quit the app
-					if NSDocumentController.shared.documents.count == 1 {
+
+					if shouldQuitIfOnly && NSDocumentController.shared.documents.count == 1 {
 						DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
 							NSApp.terminate(nil)
 						}
@@ -662,31 +658,12 @@ struct StaplerApp: App {
 		}
 	}
 
+	private func handleLaunchedWithDocument(_ url: URL) {
+		openAndLaunchAliases(from: url, shouldQuitIfOnly: true)
+	}
+
 	private func handleOpenedFromFinderWhileRunning(_ url: URL) {
-		DispatchQueue.main.asyncAfter(deadline: .now() + commandKeyDelay) {
-			let commandKeyPressed = NSEvent.modifierFlags.contains(.command)
-			
-			if !commandKeyPressed {
-				do {
-					guard url.startAccessingSecurityScopedResource() else {
-						logger.error("Failed to access security-scoped resource")
-						return
-					}
-					defer { url.stopAccessingSecurityScopedResource() }
-					
-					let document = try StaplerDocument(contentsOf: url)
-					let viewModel = StaplerViewModel(document: document)
-					viewModel.launchAliases(at: IndexSet(integersIn: 0..<document.aliases.count))
-					
-					// Close the document
-					if let windowController = NSDocumentController.shared.document(for: url)?.windowControllers.first {
-						windowController.close()
-					}
-				} catch {
-					logger.error("Error handling document opening: \(error.localizedDescription)")
-				}
-			}
-		}
+		openAndLaunchAliases(from: url, shouldQuitIfOnly: false)
 	}
 
 	var body: some Scene {
