@@ -272,8 +272,24 @@ class StaplerViewModel: ObservableObject {
 	}
 }
 
-class QuickLookPreviewController: NSObject, QLPreviewPanelDataSource, QLPreviewPanelDelegate {
+class QuickLookResponder: NSView, QLPreviewPanelDataSource, QLPreviewPanelDelegate {
 	var previewItems: [AliasItem] = []
+
+	override var acceptsFirstResponder: Bool { true }
+
+	override func acceptsPreviewPanelControl(_ panel: QLPreviewPanel!) -> Bool {
+		return true
+	}
+
+	override func beginPreviewPanelControl(_ panel: QLPreviewPanel!) {
+		panel.dataSource = self
+		panel.delegate = self
+	}
+
+	override func endPreviewPanelControl(_ panel: QLPreviewPanel!) {
+		panel.dataSource = nil
+		panel.delegate = nil
+	}
 
 	func numberOfPreviewItems(in panel: QLPreviewPanel!) -> Int {
 		return previewItems.count
@@ -306,6 +322,16 @@ class QuickLookPreviewController: NSObject, QLPreviewPanelDataSource, QLPreviewP
 	}
 }
 
+struct QuickLookBridge: NSViewRepresentable {
+	let responder: QuickLookResponder
+
+	func makeNSView(context: Context) -> QuickLookResponder {
+		return responder
+	}
+
+	func updateNSView(_ nsView: QuickLookResponder, context: Context) {}
+}
+
 struct ContentView: View {
 	@ObservedObject private var viewModel: StaplerViewModel
 	@Binding var document: StaplerDocument
@@ -313,7 +339,7 @@ struct ContentView: View {
 	@State private var selection = Set<UUID>()
 	@State private var showingErrorAlert = false
 	@FocusState private var isViewFocused: Bool
-	private let quickLookPreviewController = QuickLookPreviewController()
+	private let quickLookResponder = QuickLookResponder()
 
 	@Environment(\.appStateManager) private var appStateManager
 
@@ -362,6 +388,7 @@ struct ContentView: View {
 				}
 			}
 		}
+		.background(QuickLookBridge(responder: quickLookResponder).frame(width: 0, height: 0))
 		.frame(minWidth: 300, minHeight: 200)
 		.focused($isViewFocused)
 		.onDrop(of: [.fileURL], isTargeted: nil) { providers in
@@ -488,10 +515,10 @@ struct ContentView: View {
 			return
 		}
 
-		quickLookPreviewController.previewItems = viewModel.document.aliases
+		quickLookResponder.previewItems = viewModel.document.aliases
 		if let panel = QLPreviewPanel.shared() {
-			panel.dataSource = quickLookPreviewController
-			panel.delegate = quickLookPreviewController
+			panel.dataSource = quickLookResponder
+			panel.delegate = quickLookResponder
 			panel.currentPreviewItemIndex = selectedIndex
 			panel.makeKeyAndOrderFront(nil)
 		}
