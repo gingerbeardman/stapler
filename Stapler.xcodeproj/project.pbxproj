@@ -14,7 +14,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C9434CC42C67E4F60054A3F0 /* Icon Artwork.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon Artwork.png"; sourceTree = "<group>"; };
 		C995EA372C6671FA00AB5C91 /* Stapler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Stapler.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C995EA3A2C6671FA00AB5C91 /* StaplerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaplerApp.swift; sourceTree = "<group>"; };
 		C995EA402C6671FB00AB5C91 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -59,7 +58,6 @@
 				C995EA452C6671FC00AB5C91 /* Info.plist */,
 				C995EA462C6671FC00AB5C91 /* Stapler.entitlements */,
 				C995EA402C6671FB00AB5C91 /* Assets.xcassets */,
-				C9434CC42C67E4F60054A3F0 /* Icon Artwork.png */,
 				C995EA422C6671FC00AB5C91 /* Preview Content */,
 			);
 			path = Stapler;
@@ -283,7 +281,7 @@
 				CODE_SIGN_ENTITLEMENTS = Stapler/Stapler.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 260403;
+				CURRENT_PROJECT_VERSION = 260404;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Stapler/Preview Content\"";
 				ENABLE_APP_SANDBOX = YES;
@@ -319,7 +317,7 @@
 				CODE_SIGN_ENTITLEMENTS = Stapler/Stapler.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 260403;
+				CURRENT_PROJECT_VERSION = 260404;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Stapler/Preview Content\"";
 				ENABLE_APP_SANDBOX = YES;

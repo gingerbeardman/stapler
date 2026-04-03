@@ -364,27 +364,57 @@ struct ContentView: View {
 					}
 					.padding(.vertical, 3)
 					.contentShape(Rectangle())
-					.gesture(TapGesture(count: 2).onEnded {
-						launchAliasItem(alias)
-					})
+					.simultaneousGesture(
+						TapGesture(count: 1)
+							.onEnded {
+								let modifiers = NSApp.currentEvent?.modifierFlags ?? NSEvent.modifierFlags
+								if modifiers.contains(.command) {
+									if selection.contains(alias.id) {
+										selection.remove(alias.id)
+									} else {
+										selection.insert(alias.id)
+									}
+								} else {
+									selection = [alias.id]
+								}
+							}
+					)
+					.simultaneousGesture(
+						TapGesture(count: 2)
+							.onEnded {
+								launchAliasItem(alias)
+							}
+					)
 					.contextMenu {
-						Button("Launch") {
-							launchAliasItem(alias)
+						let actionAliases = selection.contains(alias.id) && selection.count > 1
+							? viewModel.document.aliases.filter { selection.contains($0.id) }
+							: [alias]
+						Button(actionAliases.count > 1 ? "Launch \(actionAliases.count) Items" : "Launch") {
+							let indices = viewModel.document.aliases.indices.filter { i in
+								actionAliases.contains(where: { $0.id == viewModel.document.aliases[i].id })
+							}
+							viewModel.launchAliases(at: IndexSet(indices))
 						}
 						Button("Quick Look") {
-							selection = [alias.id]
+							if !selection.contains(alias.id) {
+								selection = [alias.id]
+							}
 							showQuickLook()
 						}
-						Button("Reveal in Finder") {
-							if let url = alias.resolveURL() {
-								NSWorkspace.shared.activateFileViewerSelecting([url])
+						Button(actionAliases.count > 1 ? "Reveal \(actionAliases.count) Items in Finder" : "Reveal in Finder") {
+							let urls = actionAliases.compactMap { $0.resolveURL() }
+							if !urls.isEmpty {
+								NSWorkspace.shared.activateFileViewerSelecting(urls)
 							}
 						}
 						Divider()
-						Button("Remove") {
-							if let index = viewModel.document.aliases.firstIndex(where: { $0.id == alias.id }) {
-								viewModel.removeAliases(at: IndexSet(integer: index))
-								selection.remove(alias.id)
+						Button(actionAliases.count > 1 ? "Remove \(actionAliases.count) Items" : "Remove") {
+							let indices = viewModel.document.aliases.indices.filter { i in
+								actionAliases.contains(where: { $0.id == viewModel.document.aliases[i].id })
+							}
+							if !indices.isEmpty {
+								viewModel.removeAliases(at: IndexSet(indices))
+								for a in actionAliases { selection.remove(a.id) }
 								updateDocument()
 							}
 						}
@@ -488,16 +518,14 @@ struct ContentView: View {
 	}
 
 	private func showQuickLook() {
-		guard let selectedID = selection.first,
-			  let selectedIndex = viewModel.document.aliases.firstIndex(where: { $0.id == selectedID }) else {
-			return
-		}
+		let selectedAliases = viewModel.document.aliases.filter { selection.contains($0.id) }
+		guard !selectedAliases.isEmpty else { return }
 
-		quickLookResponder.previewItems = viewModel.document.aliases
+		quickLookResponder.previewItems = selectedAliases
 		if let panel = QLPreviewPanel.shared() {
 			panel.dataSource = quickLookResponder
 			panel.delegate = quickLookResponder
-			panel.currentPreviewItemIndex = selectedIndex
+			panel.currentPreviewItemIndex = 0
 			panel.makeKeyAndOrderFront(nil)
 		}
 	}
