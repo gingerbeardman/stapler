@@ -362,12 +362,30 @@ struct ContentView: View {
 					}
 					.padding(.vertical, 3)
 					.contentShape(Rectangle())
-					.onTapGesture(count: 2) {
-						toggleSelection(for: alias)
+					.gesture(TapGesture(count: 2).onEnded {
 						launchAlias(alias)
-					}
-					.onTapGesture(count: 1) {
-						toggleSelection(for: alias)
+					})
+					.contextMenu {
+						Button("Launch") {
+							launchAlias(alias)
+						}
+						Button("Quick Look") {
+							selection = [alias.id]
+							showQuickLook()
+						}
+						Button("Reveal in Finder") {
+							if let url = alias.resolveURL() {
+								NSWorkspace.shared.activateFileViewerSelecting([url])
+							}
+						}
+						Divider()
+						Button("Remove") {
+							if let index = viewModel.document.aliases.firstIndex(where: { $0.id == alias.id }) {
+								viewModel.removeAliases(at: IndexSet(integer: index))
+								selection.remove(alias.id)
+								updateDocument()
+							}
+						}
 					}
 				}
 				.onChange(of: selection) { newValue in
@@ -460,14 +478,6 @@ struct ContentView: View {
 			appStateManager.hasActiveDocument = false
 		}
 		.modifier(KeyPressModifier(launchAction: launchSelected, quickLookAction: showQuickLook))
-	}
-
-	private func toggleSelection(for alias: AliasItem) {
-		if selection.contains(alias.id) {
-			selection.remove(alias.id)
-		} else {
-			selection.insert(alias.id)
-		}
 	}
 
 	private func launchAlias(_ alias: AliasItem) {
