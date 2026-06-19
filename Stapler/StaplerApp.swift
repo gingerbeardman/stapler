@@ -103,9 +103,19 @@ struct AliasItem: Identifiable, Codable, Hashable {
 	// existing documents only contain bookmarkData, so they decode unchanged.
 	let bookmarkData: Data?
 	let urlString: String?
+	// The file's name captured when it was added, so a deleted/unresolvable
+	// item can still be identified. Optional for backward compatibility —
+	// documents written before this field decode it as nil.
+	let originalName: String?
 
 	var isWebURL: Bool {
 		bookmarkData == nil && urlString != nil
+	}
+
+	// True when a file-backed alias can no longer be resolved (deleted, or on
+	// an unavailable volume). Web aliases are never considered missing.
+	var isMissing: Bool {
+		!isWebURL && resolveURL() == nil
 	}
 
 	var webURL: URL? {
@@ -122,7 +132,7 @@ struct AliasItem: Identifiable, Codable, Hashable {
 			}
 			return full
 		}
-		return resolveURL()?.lastPathComponent ?? "Unknown"
+		return resolveURL()?.lastPathComponent ?? originalName ?? "Unknown"
 	}
 
 	var icon: NSImage {
@@ -143,6 +153,7 @@ struct AliasItem: Identifiable, Codable, Hashable {
 		self.id = id
 		self.bookmarkData = try url.bookmarkData(options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess], includingResourceValuesForKeys: nil, relativeTo: nil)
 		self.urlString = nil
+		self.originalName = url.lastPathComponent
 	}
 
 	// Web-backed alias.
@@ -150,6 +161,7 @@ struct AliasItem: Identifiable, Codable, Hashable {
 		self.id = id
 		self.bookmarkData = nil
 		self.urlString = webURL.absoluteString
+		self.originalName = nil
 	}
 
 	func resolveURL() -> URL? {
@@ -403,11 +415,19 @@ struct ContentView: View {
 		VStack {
 			ZStack {
 				List(viewModel.document.aliases, id: \.id, selection: $selection) { alias in
+					let missing = alias.isMissing
 					HStack {
 						Image(nsImage: alias.icon)
 							.resizable()
 							.frame(width: 20, height: 20)
+							.opacity(missing ? 0.5 : 1)
 						Text(alias.name)
+							.foregroundColor(missing ? .secondary : .primary)
+						if missing {
+							Text("(missing)")
+								.font(.caption)
+								.foregroundColor(.secondary)
+						}
 						Spacer()
 					}
 					.padding(.vertical, 3)
