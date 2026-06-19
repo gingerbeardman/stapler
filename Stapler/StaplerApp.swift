@@ -97,25 +97,66 @@ extension FocusedValues {
 
 struct AliasItem: Identifiable, Codable, Hashable {
 	let id: UUID
-	let bookmarkData: Data
-	
-	var name: String {
-		resolveURL()?.lastPathComponent ?? "Unknown"
+	// A file-backed alias stores a security-scoped bookmark; a web-backed alias
+	// (e.g. a link dropped from a browser, or a .webloc) stores a URL string.
+	// Exactly one is non-nil. bookmarkData is optional purely for the web case —
+	// existing documents only contain bookmarkData, so they decode unchanged.
+	let bookmarkData: Data?
+	let urlString: String?
+
+	var isWebURL: Bool {
+		bookmarkData == nil && urlString != nil
 	}
-	
+
+	var webURL: URL? {
+		guard isWebURL, let urlString else { return nil }
+		return URL(string: urlString)
+	}
+
+	var name: String {
+		if let webURL {
+			// Strip the http(s) scheme for a cleaner label; leave others (mailto:) intact.
+			let full = webURL.absoluteString
+			for prefix in ["https://", "http://"] where full.hasPrefix(prefix) {
+				return String(full.dropFirst(prefix.count))
+			}
+			return full
+		}
+		return resolveURL()?.lastPathComponent ?? "Unknown"
+	}
+
 	var icon: NSImage {
+		if isWebURL {
+			if let webloc = UTType("com.apple.web-internet-location") {
+				return NSWorkspace.shared.icon(for: webloc)
+			}
+			return NSImage(named: NSImage.networkName) ?? NSImage(named: NSImage.cautionName) ?? NSImage()
+		}
 		if let url = resolveURL() {
 			return NSWorkspace.shared.icon(forFile: url.path)
 		}
 		return NSImage(named: NSImage.cautionName) ?? NSImage()
 	}
-	
+
+	// File-backed alias.
 	init(id: UUID = UUID(), url: URL) throws {
 		self.id = id
 		self.bookmarkData = try url.bookmarkData(options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess], includingResourceValuesForKeys: nil, relativeTo: nil)
+		self.urlString = nil
 	}
-	
+
+	// Web-backed alias.
+	init(id: UUID = UUID(), webURL: URL) {
+		self.id = id
+		self.bookmarkData = nil
+		self.urlString = webURL.absoluteString
+	}
+
 	func resolveURL() -> URL? {
+		if isWebURL {
+			return webURL
+		}
+		guard let bookmarkData else { return nil }
 		var isStale = false
 		do {
 			let url = try URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale)
@@ -210,29 +251,36 @@ class StaplerViewModel: ObservableObject {
 		document.aliases.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
 	}
 
-	private func coordinateAliases(at offsets: IndexSet, action: @escaping (URL) -> Void) {
+	// Coordinates access to file-backed aliases only; web aliases are skipped.
+	private func coordinateFileAliases(at offsets: IndexSet, action: @escaping (URL) -> Void) {
 		for index in offsets {
-			if let url = document.aliases[index].resolveURL() {
-				let coordinator = NSFileCoordinator()
-				var error: NSError?
-				coordinator.coordinate(readingItemAt: url, options: .withoutChanges, error: &error) { url in
-					action(url)
-				}
-				if let error = error {
-					handleError(error)
-				}
+			let alias = document.aliases[index]
+			guard !alias.isWebURL, let url = alias.resolveURL() else { continue }
+			let coordinator = NSFileCoordinator()
+			var error: NSError?
+			coordinator.coordinate(readingItemAt: url, options: .withoutChanges, error: &error) { url in
+				action(url)
+			}
+			if let error = error {
+				handleError(error)
 			}
 		}
 	}
 
 	func launchAliases(at offsets: IndexSet) {
-		coordinateAliases(at: offsets) { url in
+		// Web links open directly in the default browser; files go through coordination.
+		for index in offsets {
+			if let webURL = document.aliases[index].webURL {
+				NSWorkspace.shared.open(webURL)
+			}
+		}
+		coordinateFileAliases(at: offsets) { url in
 			NSWorkspace.shared.open(url)
 		}
 	}
 
 	func showFinderInfo(at offsets: IndexSet) {
-		coordinateAliases(at: offsets) { url in
+		coordinateFileAliases(at: offsets) { url in
 			NSWorkspace.shared.activateFileViewerSelecting([url])
 		}
 	}
@@ -402,7 +450,7 @@ struct ContentView: View {
 							showQuickLook()
 						}
 						Button(actionAliases.count > 1 ? "Reveal \(actionAliases.count) Items in Finder" : "Reveal in Finder") {
-							let urls = actionAliases.compactMap { $0.resolveURL() }
+							let urls = actionAliases.compactMap { $0.isWebURL ? nil : $0.resolveURL() }
 							if !urls.isEmpty {
 								NSWorkspace.shared.activateFileViewerSelecting(urls)
 							}
@@ -428,7 +476,7 @@ struct ContentView: View {
 						Text("No Items")
 							.font(.headline)
 							.foregroundColor(.secondary)
-						Text("Use Items \u{2192} Add or drag files here")
+						Text("Use Items \u{2192} Add or drag files and links here")
 							.font(.subheadline)
 							.foregroundColor(.secondary)
 					}
@@ -450,7 +498,7 @@ struct ContentView: View {
 			revealInFinder: { showFinderInfo() },
 			hasSelection: !selection.isEmpty
 		))
-		.onDrop(of: [.fileURL], isTargeted: nil) { providers in
+		.onDrop(of: [.fileURL, .url], isTargeted: nil) { providers in
 			let wasEmpty = viewModel.document.aliases.isEmpty
 			for provider in providers {
 				_ = provider.loadObject(ofClass: URL.self) { url, error in
@@ -458,17 +506,7 @@ struct ContentView: View {
 						viewModel.handleError(error)
 					} else if let url = url {
 						DispatchQueue.main.async {
-							do {
-								let newAlias = try AliasItem(url: url)
-								viewModel.addAlias(newAlias)
-								if wasEmpty {
-									updateDocument()
-								} else {
-									document.aliases = viewModel.document.aliases
-								}
-							} catch {
-								viewModel.handleError(error)
-							}
+							addDroppedURL(url, wasEmpty: wasEmpty)
 						}
 					}
 				}
@@ -511,6 +549,42 @@ struct ContentView: View {
 		}
 	}
 
+	// Turns a dropped URL into an alias: web links and .webloc files become web
+	// aliases, everything else becomes a file alias.
+	private func addDroppedURL(_ url: URL, wasEmpty: Bool) {
+		do {
+			let newAlias: AliasItem
+			if url.isFileURL {
+				if let weblocURL = webURL(fromWeblocAt: url) {
+					newAlias = AliasItem(webURL: weblocURL)
+				} else {
+					newAlias = try AliasItem(url: url)
+				}
+			} else {
+				newAlias = AliasItem(webURL: url)
+			}
+			viewModel.addAlias(newAlias)
+			if wasEmpty {
+				updateDocument()
+			} else {
+				document.aliases = viewModel.document.aliases
+			}
+		} catch {
+			viewModel.handleError(error)
+		}
+	}
+
+	// Extracts the target URL from a .webloc file's plist, or nil if it isn't one.
+	private func webURL(fromWeblocAt url: URL) -> URL? {
+		guard url.pathExtension.lowercased() == "webloc",
+			  let data = try? Data(contentsOf: url),
+			  let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
+			  let urlString = plist["URL"] as? String else {
+			return nil
+		}
+		return URL(string: urlString)
+	}
+
 	private func launchAliasItem(_ alias: AliasItem) {
 		if let index = viewModel.document.aliases.firstIndex(where: { $0.id == alias.id }) {
 			viewModel.launchAliases(at: IndexSet(integer: index))
@@ -518,7 +592,8 @@ struct ContentView: View {
 	}
 
 	private func showQuickLook() {
-		let selectedAliases = viewModel.document.aliases.filter { selection.contains($0.id) }
+		// Quick Look only applies to files; skip web aliases.
+		let selectedAliases = viewModel.document.aliases.filter { selection.contains($0.id) && !$0.isWebURL }
 		guard !selectedAliases.isEmpty else { return }
 
 		quickLookResponder.previewItems = selectedAliases
