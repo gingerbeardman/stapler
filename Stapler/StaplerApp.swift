@@ -197,10 +197,14 @@ struct StaplerDocument: FileDocument, Equatable {
 
 	var fileURL: URL?
 	var aliases: [AliasItem]
-	
+	// The document window's last frame, encoded via NSStringFromRect. Optional
+	// so documents saved before this field decode unchanged.
+	var windowFrame: String?
+
 	init() {
 		self.aliases = []
 		self.fileURL = nil
+		self.windowFrame = nil
 	}
 
 	init(configuration: ReadConfiguration) throws {
@@ -209,24 +213,28 @@ struct StaplerDocument: FileDocument, Equatable {
 		}
 		let decodedData = try JSONDecoder().decode(StaplerDocumentData.self, from: data)
 		self.aliases = decodedData.aliases
+		self.windowFrame = decodedData.windowFrame
 		self.fileURL = configuration.file.filename.flatMap { URL(fileURLWithPath: $0) }
 	}
-	
+
 	init(contentsOf url: URL) throws {
 		let data = try Data(contentsOf: url)
 		let decodedData = try JSONDecoder().decode(StaplerDocumentData.self, from: data)
 		self.aliases = decodedData.aliases
+		self.windowFrame = decodedData.windowFrame
 		self.fileURL = url
 	}
 
 	func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-		let documentData = StaplerDocumentData(aliases: aliases)
+		let documentData = StaplerDocumentData(aliases: aliases, windowFrame: windowFrame)
 		let data = try JSONEncoder().encode(documentData)
 		let wrapper = FileWrapper(regularFileWithContents: data)
 		wrapper.preferredFilename = configuration.existingFile?.filename ?? "Untitled.stapled"
 		return wrapper
 	}
 
+	// Window frame is intentionally excluded: resizing a window should not be
+	// treated as a content change for the view model's change tracking.
 	static func == (lhs: StaplerDocument, rhs: StaplerDocument) -> Bool {
 		lhs.aliases == rhs.aliases
 	}
@@ -234,6 +242,12 @@ struct StaplerDocument: FileDocument, Equatable {
 
 struct StaplerDocumentData: Codable {
 	let aliases: [AliasItem]
+	let windowFrame: String?
+
+	init(aliases: [AliasItem], windowFrame: String? = nil) {
+		self.aliases = aliases
+		self.windowFrame = windowFrame
+	}
 }
 
 class StaplerViewModel: ObservableObject {
@@ -397,6 +411,82 @@ struct QuickLookBridge: NSViewRepresentable {
 	func updateNSView(_ nsView: QuickLookResponder, context: Context) {}
 }
 
+// Bridges the SwiftUI document window to AppKit so its frame can be restored
+// from, and saved back into, the document.
+struct WindowConfigurator: NSViewRepresentable {
+	let storedFrame: String?
+	let onFrameChange: (NSRect) -> Void
+
+	func makeCoordinator() -> Coordinator {
+		Coordinator(onFrameChange: onFrameChange)
+	}
+
+	func makeNSView(context: Context) -> NSView {
+		let view = NSView()
+		DispatchQueue.main.async {
+			context.coordinator.attach(to: view.window, storedFrame: storedFrame)
+		}
+		return view
+	}
+
+	func updateNSView(_ nsView: NSView, context: Context) {
+		context.coordinator.onFrameChange = onFrameChange
+		DispatchQueue.main.async {
+			context.coordinator.attach(to: nsView.window, storedFrame: storedFrame)
+		}
+	}
+
+	final class Coordinator {
+		var onFrameChange: (NSRect) -> Void
+		private weak var window: NSWindow?
+		private var didApplyFrame = false
+		private var observers: [NSObjectProtocol] = []
+		private var pendingReport: DispatchWorkItem?
+
+		init(onFrameChange: @escaping (NSRect) -> Void) {
+			self.onFrameChange = onFrameChange
+		}
+
+		func attach(to window: NSWindow?, storedFrame: String?) {
+			guard let window, self.window !== window else { return }
+			observers.forEach { NotificationCenter.default.removeObserver($0) }
+			observers.removeAll()
+			self.window = window
+
+			// Restore the saved frame once, keeping it on a connected screen.
+			if !didApplyFrame, let storedFrame, !storedFrame.isEmpty {
+				var rect = NSRectFromString(storedFrame)
+				if rect.width > 0, rect.height > 0 {
+					if let screen = NSScreen.screens.first(where: { $0.frame.intersects(rect) }) ?? window.screen {
+						rect = window.constrainFrameRect(rect, to: screen)
+					}
+					window.setFrame(rect, display: true)
+				}
+			}
+			didApplyFrame = true
+
+			// Coalesce bursts of move/resize notifications into a single report.
+			let schedule: (Notification) -> Void = { [weak self] _ in
+				guard let self else { return }
+				self.pendingReport?.cancel()
+				let work = DispatchWorkItem { [weak self] in
+					guard let self, let window = self.window, window.isVisible else { return }
+					self.onFrameChange(window.frame)
+				}
+				self.pendingReport = work
+				DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: work)
+			}
+			for name in [NSWindow.didEndLiveResizeNotification, NSWindow.didMoveNotification] {
+				observers.append(NotificationCenter.default.addObserver(forName: name, object: window, queue: .main, using: schedule))
+			}
+		}
+
+		deinit {
+			observers.forEach { NotificationCenter.default.removeObserver($0) }
+		}
+	}
+}
+
 struct ContentView: View {
 	@ObservedObject private var viewModel: StaplerViewModel
 	@Binding var document: StaplerDocument
@@ -504,6 +594,15 @@ struct ContentView: View {
 			}
 		}
 		.background(QuickLookBridge(responder: quickLookResponder).frame(width: 0, height: 0))
+		.background(
+			WindowConfigurator(storedFrame: viewModel.document.windowFrame) { frame in
+				let encoded = NSStringFromRect(frame)
+				guard document.windowFrame != encoded else { return }
+				document.windowFrame = encoded
+				viewModel.markDocumentAsEdited()
+			}
+			.frame(width: 0, height: 0)
+		)
 		.frame(minWidth: 300, minHeight: 200)
 		.focused($isViewFocused)
 		.focusedValue(\.documentActions, DocumentActions(
