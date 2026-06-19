@@ -515,7 +515,6 @@ struct ContentView: View {
 							.foregroundColor(missing ? .secondary : .primary)
 						if missing {
 							Text("(missing)")
-								.font(.caption)
 								.foregroundColor(.secondary)
 						}
 						Spacer()
