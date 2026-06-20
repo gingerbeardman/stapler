@@ -8,7 +8,7 @@ More info in [the accompanying blog post](https://blog.gingerbeardman.com/2024/0
 
 ## Download
 
-[https://github.com/gingerbeardman/stapler/releases/latest](https://github.com/gingerbeardman/stapler/releases/latest)
+[https://www.gingerbeardman.com/apps/stapler/](https://www.gingerbeardman.com/apps/stapler/)
 
 - supported: macOS 12 and newer
 
